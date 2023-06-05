@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  mongo:
+    container_name: fitness-app-mongodb
+    build:
+      context: ./mongo
+    env_file:
+      - ./env/mongo.env
+    # networks:
+    #   - mongo-server
+  
+  mysql:
+    container_name: fitness-app-mysql
+    build:
+      context: ./mysql
+    env_file:
+      - ./env/mysql.env   # Env variables are used by this image to set up a database, user, password
+    networks:
+      - mysql-server
+  
+  server:
+    container_name: fitness-app-back
+    build:
+      context: ./server
+    ports:
+      - 5000:5000
+    volumes:   # REMOVE BIND MOUND BEFORE SUBMITTING - Only for dev purposes
+      - ./server:/app
+    env_file:
+      - ./env/server.env
+    depends_on:
+      # - mongodb
+      - mysql
+    networks:
+      - mysql-server
+    #   - mongo-server
+  
+  # frontend:
+  #   container_name: fitness-app-front
+  #   build:
+  #     context: ./frontend
+  #   ports:
+  #     - 3000:3000
+  #   depends_on:
+  #     - server
+    # networks:
+    #   -
+
+networks:
+  mysql-server:
+#   mongo-server:
