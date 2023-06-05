@@ -25,8 +25,8 @@ services:
       context: ./server
     ports:
       - 5000:5000
-    volumes:   # REMOVE BIND MOUND BEFORE SUBMITTING - Only for dev purposes
-      - ./server:/app
+    # volumes:   # REMOVE BIND MOUND BEFORE SUBMITTING - Only for dev purposes
+    #   - ./server:/app
     env_file:
       - ./env/server.env
     depends_on:
