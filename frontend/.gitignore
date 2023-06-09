@@ -1,7 +1,0 @@
-/.idea
-/node_modules
-/yarn-error.log
-/src/assets/css/main.css
-/build
-.env
-.DS_Store

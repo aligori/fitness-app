@@ -2,20 +2,22 @@ version: "3.8"
 
 services:
   mongo:
-    container_name: fitness-app-mongodb
+    container_name: fitness-app-mongo
+    restart: always
     build:
       context: ./mongo
     env_file:
       - ./env/mongo.env
-    # networks:
-    #   - mongo-server
+    networks:
+      - mongo-server
   
   mysql:
     container_name: fitness-app-mysql
+    restart: always
     build:
       context: ./mysql
     env_file:
-      - ./env/mysql.env   # Env variables are used by this image to set up a database, user, password
+      - ./env/mysql.env
     networks:
       - mysql-server
   
@@ -30,23 +32,25 @@ services:
     env_file:
       - ./env/server.env
     depends_on:
-      # - mongodb
+      - mongo
       - mysql
     networks:
       - mysql-server
-    #   - mongo-server
+      - mongo-server
+      # - react-server
   
-  # frontend:
-  #   container_name: fitness-app-front
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - 3000:3000
-  #   depends_on:
-  #     - server
+  front:
+    container_name: fitness-app-front
+    build:
+      context: ./front
+    ports:
+      - 3000:3000
+    depends_on:
+      - server
     # networks:
-    #   -
+    #   - react-server
 
 networks:
   mysql-server:
-#   mongo-server:
+  mongo-server:
+  # react-server:
