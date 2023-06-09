@@ -5,7 +5,7 @@ CREATE TABLE test (
 );
 
 
-CREATE TABLE USER(
+CREATE TABLE `USER`(
     id INT NOT NULL AUTO_INCREMENT,
     email VARCHAR(60),
     password VARCHAR(25),
@@ -16,14 +16,14 @@ CREATE TABLE USER(
 );
 
 CREATE TABLE GYM_GOER(
-    goer_id int,
+    goer_id INT,
     weight INT,
     height INT,
     birthday DATE,
-    age INT as DATEDIFF(NOW(), birthday),--SQL Server code
+    age INT AS (DATEDIFF(NOW(), birthday)),--SQL Server code
     membership_type VARCHAR(5),
     PRIMARY KEY(goer_id),
-    FOREIGN KEY (goer_id) REFERENCES USER (id) ON DELETE CASCADE
+    FOREIGN KEY (goer_id) REFERENCES `USER` (id) ON DELETE CASCADE
 );
 
 CREATE TABLE FITNESS_INFLUENCER(
@@ -35,7 +35,7 @@ CREATE TABLE FITNESS_INFLUENCER(
     website VARCHAR(50),
     bio VARCHAR(500),
     PRIMARY KEY(influencer_id),
-    FOREIGN KEY (influencer_id) REFERENCES USER (id) ON DELETE CASCADE
+    FOREIGN KEY (influencer_id) REFERENCES`USER` (id) ON DELETE CASCADE
 );
 
 CREATE TABLE PLAN(
@@ -67,25 +67,30 @@ CREATE TABLE CATEGORY(
 );
 
 --weak entity
-CREATE TABLE SET(
+CREATE TABLE `SET`(
     set_no INT,
     workout_id INT,
     composed_of INT,
     reps INT,
-    break TIME,
+    break_time TIME,
+    calories INT,
 
-    PRIMARY KEY(set_no, workout_id)
+    PRIMARY KEY(set_no, workout_id),
     FOREIGN KEY (workout_id) REFERENCES WORKOUT (id) ON DELETE CASCADE,
     FOREIGN KEY (composed_of) REFERENCES EXERCISE(id) ON DELETE CASCADE
-    
-    --make later by altering the table and then using a trigger
-    --calories INT--as EXERCISE.calories_burned * reps
-    --see line 156
 );
+
+CREATE TRIGGER calculate_calories_trigger
+BEFORE INSERT ON `SET` FOR EACH ROW
+BEGIN
+    DECLARE exercise_calories INT;
+    SELECT calories_burned INTO exercise_calories FROM EXERCISE WHERE id = NEW.composed_of;
+    SET NEW.calories = exercise_calories * NEW.reps;
+END;
 
 CREATE TABLE EXERCISE(
     id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(50)
+    name VARCHAR(50),
     description VARCHAR(500),
     --image
     equipment VARCHAR(100),
@@ -101,8 +106,8 @@ CREATE TABLE FRIENDSHIP(
     goer_b_id INT,
 
     PRIMARY KEY(goer_a_id, goer_b_id)
-    FOREIGN KEY (goer_a_id) REFERENCES GYM_GOER (id) ON DELETE CASCADE,
-    FOREIGN KEY (goer_b_id) REFERENCES GYM_GOER (id) ON DELETE CASCADE
+    FOREIGN KEY (goer_a_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
+    FOREIGN KEY (goer_b_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE
 );
 
 --gym goer completes workout: many to many (+ date)
@@ -113,7 +118,7 @@ CREATE TABLE GYM_GOER_WORKOUT(
     completed_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY(goer_id, workout_id),
-    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (id) ON DELETE CASCADE,
+    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
     FOREIGN KEY (workout_id) REFERENCES WORKOUT (id) ON DELETE SET NULL,
 );
 
@@ -125,7 +130,7 @@ CREATE TABLE SUBSCRIPTION(
     subscribe_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY(goer_id, plan_id),
-    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (id) ON DELETE CASCADE,
+    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES PLAN (id) ON DELETE SET NULL
 );
 
@@ -136,7 +141,7 @@ CREATE TABLE FOLLOWER(
     influencer_id INT,
 
     PRIMARY KEY(goer_id, influencer_id),
-    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (id) ON DELETE CASCADE,
+    FOREIGN KEY (goer_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
     FOREIGN KEY (influencer_id) REFERENCES FITNESS_INFLUENCER (id) ON DELETE SET NULL
 );
 
@@ -153,11 +158,3 @@ CREATE TABLE FOLLOWER(
 
 --set specifies exercise: many to 1
 
-ALTER TABLE SET
-ADD calories int;
-
-CREATE TRIGGER calculate_calories
-AFTER INSERT ON SET FOR EACH ROW
-BEGIN
-    calories = EXERCISE.calories_burned * SET.reps;
-END;
