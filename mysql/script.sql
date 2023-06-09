@@ -6,7 +6,7 @@ CREATE TABLE test (
 
 
 CREATE TABLE `USER`(
-    id INT NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL,
     email VARCHAR(60),
     password VARCHAR(25),
     username VARCHAR(15),
@@ -20,11 +20,17 @@ CREATE TABLE GYM_GOER(
     weight INT,
     height INT,
     birthday DATE,
-    age INT AS (DATEDIFF(NOW(), birthday)),--SQL Server code
+    --age INT AS (DATEDIFF(NOW(), birthday)),--SQL Server code
     membership_type VARCHAR(5),
     PRIMARY KEY(goer_id),
     FOREIGN KEY (goer_id) REFERENCES `USER` (id) ON DELETE CASCADE
 );
+
+CREATE TRIGGER calculate_age_trigger
+BEFORE INSERT ON GYM_GOER FOR EACH ROW
+BEGIN
+    SET age = DATEDIFF(NOW(), GYM_GOER.birthday);
+END;
 
 CREATE TABLE FITNESS_INFLUENCER(
     influencer_id INT,
@@ -39,7 +45,7 @@ CREATE TABLE FITNESS_INFLUENCER(
 );
 
 CREATE TABLE PLAN(
-    id INT NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL,
     title VARCHAR(50),
     description VARCHAR(500),
     goal VARCHAR(50),
@@ -49,7 +55,7 @@ CREATE TABLE PLAN(
 );
 
 CREATE TABLE WORKOUT(
-    id INT NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL,
     title VARCHAR(50),
     difficulty VARCHAR(20),
     duration TIME,
@@ -89,7 +95,7 @@ BEGIN
 END;
 
 CREATE TABLE EXERCISE(
-    id INT NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL,
     name VARCHAR(50),
     description VARCHAR(500),
     --image
