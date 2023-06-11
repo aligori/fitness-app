@@ -93,15 +93,15 @@ app.get('/categories', async (req, res) => {
   }
 )
 
-app.get('/plans', async (req, res) => {
+app.get('/plan', async (req, res) => {
     try {
-      const data = await services.getPlans();
+      const data = await services.getPlan();
       res.status(200).send({
         message: 'Success', data
       });
     } catch
       (err) {
-      res.status(500).send({ error: 'Internal server error' });
+      res.status(500).send({ error: err});
     }
   }
 )

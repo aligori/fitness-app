@@ -3,6 +3,7 @@ import { faker } from '@faker-js/faker'
 import {getRandomInt} from "../../utils/helpers.js";
 import {defaultCategories} from "../../data/categories.js";
 import {defaultExercises} from "../../data/exercises.js";
+import moment from "moment";
 
 async function createTest(data) {
     const query = 'INSERT INTO test (firstname, lastname, email) VALUES (?, ?, ?)';
@@ -67,8 +68,11 @@ async function fillDatabase() {
     const exercises = defaultExercises.map((e) => [e.name, e.description, e.equipment, e.calories_burned, JSON.stringify(e.muscle_groups), faker.image.urlLoremFlickr()])
     await db.executeQuery('INSERT INTO exercise (name, description, equipment, calories_burned, muscle_groups, image) VALUES ?', [exercises])
 
+    let availablePlans = 0;
+
     for (let id = 1; id <= categories.length; id++) {
         const numberOfPlansInCategory = getRandomInt(3, 15)
+        availablePlans += numberOfPlansInCategory;
 
         for (let i = 1; i <= numberOfPlansInCategory; i++) {
             const planDuration = getRandomInt(7, 30);
@@ -84,37 +88,83 @@ async function fillDatabase() {
                 categoryId: id,
             }
 
-            console.log('plan', plan)
-
             const planQuery = 'INSERT INTO plan (title, description, goal, duration, created_at, influencer_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
             const params = [plan.title, plan.description, plan.goal, plan.duration, plan.createdAt, plan.influencerId, plan.categoryId]
             await db.executeQuery(planQuery, params)
-
-            console.log('hereeee')
 
             const [records] = await db.executeQuery('SELECT LAST_INSERT_ID() as planId From plan;')
             const { planId } = records
             console.log('plan id', planId)
 
-            const workouts = [];
-
+            // Create workouts for the whole plan duration (1 workout for each day)
             for (let day = 1; day <= planDuration; day++) {
-                // Create workouts
-                const workout = [
-                    faker.lorem.words(),
-                    faker.helpers.arrayElement(['easy', 'medium', 'hard']),
-                    getRandomInt(30, 120),
-                    faker.image.url(),
-                    day,
+
+                const workout = {
+                    title: faker.lorem.words(),
+                    difficulty: faker.helpers.arrayElement(['easy', 'medium', 'hard']),
+                    duration: getRandomInt(30, 120),
+                    image: faker.image.url(),
+                    scheduledDay: day,
                     planId,
                     influencerId,
-                ]
-                workouts.push(workout)
-            }
+                }
 
-            await db.executeQuery('INSERT INTO workout (title, difficulty, duration, image, scheduled_day, plan_id, influencer_id) VALUES ?', [workouts])
+                await db.executeQuery('INSERT INTO workout (title, difficulty, duration, image, scheduled_day, plan_id, influencer_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+                    workout.title, workout.difficulty, workout.duration, workout.image, workout.scheduledDay, workout.planId, workout.influencerId
+                ])
+
+                const [records] = await db.executeQuery('SELECT LAST_INSERT_ID() as workoutId From workout;')
+                const { workoutId } = records
+
+                // Create a random number of sets for the workout
+                const numberOfSets = getRandomInt(10, 20)
+                const sets = []
+
+                for (let setNo = 1; setNo <= numberOfSets; setNo++) {
+                    const exerciseId = getRandomInt(1, defaultExercises.length)
+                    const reps = getRandomInt(1, 3)
+                    let durationInSeconds = faker.helpers.arrayElement([10, 15, 30, 60])    // Duration in seconds
+                    let duration = moment.duration(durationInSeconds, 'seconds');
+                    let breakTime = moment.utc(duration.asMilliseconds()).format('HH:mm:ss');
+
+                    const set = [
+                        setNo,
+                        workoutId,
+                        exerciseId,
+                        reps,
+                        breakTime,
+                    ]
+
+                    sets.push(set)
+                }
+
+                await db.executeQuery('INSERT INTO `set` (set_no, workout_id, exercise_id, reps, break_time) VALUES ?', [sets])
+            }
         }
     }
+
+    // Make some subscriptions
+    const subscriptions = []
+
+    for (let gymGoerId = 1; gymGoerId <= gymGoerIds.length; gymGoerId++ ) {
+        // Choose a random number of plans to subscribe to
+        const plansToSubscribe = getRandomInt(5, 10)
+        const subscribedPlanIds = []
+
+
+        for (let i = 0; i < plansToSubscribe; i++) {
+            // Select a random plan to subscribe to, from the list of available plans
+            // const planId = getRandomInt(1, 10)
+            const planId = getRandomInt(1, availablePlans)
+            if (subscribedPlanIds.includes(planId)) continue;   // Skip if randomly generated plan already subscribed
+
+            const subscriptionDate = faker.date.past({ years: 1 })
+            subscriptions.push([gymGoerId, planId, subscriptionDate])
+            subscribedPlanIds.push(planId)
+        }
+    }
+
+    await db.executeQuery('INSERT INTO subscription (goer_id, plan_id, subscribe_date) VALUES ?', [subscriptions])
 
     // TODO: FIX THIS: MongoServerError: $jsonSchema keyword 'required' must be an array, but found an element of type bool
     // fitness-app-mongo  | {"t":{"$date":"2023-06-09T19:03:06.112+00:00"},"s":"I",  "c":"NETWORK",  "id":22944,   "ctx":"conn12","msg":"Connection ended","att
@@ -138,8 +188,9 @@ async function getCategories() {
     return await db.executeQuery('SELECT * FROM category');
 }
 
-async function getPlans() {
-    return await db.executeQuery('SELECT * FROM plan');
+async function getPlan() {
+    // Use Mapper
+    return await db.executeQuery('SELECT w.plan_id AS plan_id, p.title AS plan_title,w.id AS workout_id, w.title AS workout_title FROM plan AS p inner join workout AS w ON p.id = w.plan_id WHERE p.id = 1');
 }
 
-export default { createTest, getTest, getGymGoers, getInfluencers, getPlans, getCategories, fillDatabase }
+export default { createTest, getTest, getGymGoers, getInfluencers, getPlan, getCategories, fillDatabase }
