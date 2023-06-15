@@ -134,39 +134,18 @@ CREATE TABLE gym_goer_workout(
     FOREIGN KEY (workout_id) REFERENCES workout (id) ON DELETE CASCADE
 );
 
---
--- --gym goer connects with gym goer: many to many
---     --create new table
--- CREATE TABLE FRIENDSHIP(
---     goer_a_id INT,
---     goer_b_id INT,
---
---     PRIMARY KEY(goer_a_id, goer_b_id)
---     FOREIGN KEY (goer_a_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
---     FOREIGN KEY (goer_b_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE
--- );
---
--- --gym goer follows fitness influencer: many to many
---     --create new table
--- CREATE TABLE FOLLOWER(
---     goer_id INT,
---     influencer_id INT,
---
---     PRIMARY KEY(goer_id, influencer_id),
---     FOREIGN KEY (goer_id) REFERENCES GYM_GOER (goer_id) ON DELETE CASCADE,
---     FOREIGN KEY (influencer_id) REFERENCES FITNESS_INFLUENCER (id) ON DELETE SET NULL
--- );
---
--- --fitness influencer creates workout: 1 to many
---
--- --fitness influencer creates plan: 1 to many
---
--- --plan contain worksouts: 1 to many
---
--- --plan belongs to category: many to 1
---
--- --workout contains sets: 1 to many
--- --set is weak entity
---
--- --set specifies exercise: many to 1
---
+CREATE TABLE friendship(
+    goer_a_id INT,
+    goer_b_id INT,
+    PRIMARY KEY(goer_a_id, goer_b_id),
+    FOREIGN KEY (goer_a_id) REFERENCES gym_goer (goer_id) ON DELETE CASCADE,
+    FOREIGN KEY (goer_b_id) REFERENCES gym_goer (goer_id) ON DELETE CASCADE
+);
+
+CREATE TABLE follower(
+    goer_id INT,
+    influencer_id INT,
+    PRIMARY KEY(goer_id, influencer_id),
+    FOREIGN KEY (goer_id) REFERENCES gym_goer (goer_id) ON DELETE CASCADE,
+    FOREIGN KEY (influencer_id) REFERENCES fitness_influencer (influencer_id) ON DELETE CASCADE
+);

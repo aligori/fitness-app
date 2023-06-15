@@ -166,10 +166,31 @@ async function fillDatabase() {
 
     await db.executeQuery('INSERT INTO subscription (goer_id, plan_id, subscribe_date) VALUES ?', [subscriptions])
 
-    // TODO: FIX THIS: MongoServerError: $jsonSchema keyword 'required' must be an array, but found an element of type bool
-    // fitness-app-mongo  | {"t":{"$date":"2023-06-09T19:03:06.112+00:00"},"s":"I",  "c":"NETWORK",  "id":22944,   "ctx":"conn12","msg":"Connection ended","att
-    // r":{"remote":"127.0.0.1:47518","uuid":"626451f2-23a4-4cf8-9fa3-b3dfb79cc7b2","connectionId":12,"connectionCount":3}}
+   // Create friendships between gym_goers
+   const friendships = []
 
+   for (let i = 0; i < gymGoerIds.length - 1; i++) {
+    const otherGoers = gymGoerIds.slice(i + 1)
+    const randomIndex = getRandomInt(0, otherGoers.length - 2)
+    friendships.push([gymGoerIds[i], otherGoers[randomIndex]])
+   }
+    await db.executeQuery('INSERT INTO friendship (goer_a_id, goer_b_id) VALUES ?', [friendships])
+
+   // Create followers
+   let followers = []
+
+   for (const influencerId of influencerIds) {
+        const followersIds = []
+        const numberOfFollowers = getRandomInt(0, 20)
+        for (let i = 0; i < numberOfFollowers; i++) {
+            const gymGoerId = getRandomInt(1, 100)
+            if (followersIds.includes(gymGoerId)) continue
+            followersIds.push(gymGoerId)
+        }
+        followers = [...followers, ...followersIds.map((followerId) => { return [influencerId, followerId]})]
+    }
+
+    await db.executeQuery('INSERT INTO follower (influencer_id, goer_id) VALUES ?', [followers])
 
     return 'Database filled!'
 }
