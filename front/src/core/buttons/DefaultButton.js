@@ -17,7 +17,7 @@ const DefaultButton = ({
                        }) => {
   let sizingClasses = 'py-2 px-4 text-sm';
   if (xs) {
-    sizingClasses = 'py-1 px-2 text-xs';
+    sizingClasses = 'py-1.5 px-2 text-xs';
   }
   if (sm) {
     sizingClasses = 'py-2 px-3 text-xs';
@@ -28,7 +28,7 @@ const DefaultButton = ({
   } ${sizingClasses} 
   ${disabled ? 'bg-gray-400' : bgColor || 'bg-indigo-600'}  ${
     disabled ? '' : bgColorHover || 'hover:bg-indigo-900'
-  } focus:outline-none`;
+  } focus:outline-none transition duration-300`;
 
   if (link) {
     return (

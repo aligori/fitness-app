@@ -8,6 +8,8 @@ import AuthRoute from "./AuthRoute.js";
 import AuthProvider from "../context/AuthProvider";
 import {Toaster} from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
+import CategoryPage from "../pages/CategoryPage";
+import PlanPage from "../pages/PlanPage";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +22,8 @@ const AppRoutes = () => {
         </Route>
         <Route element={<AuthRoute />}>
           <Route exact path="/" element={<Dashboard />} />
+          <Route exact path="/categories/:id" element={<CategoryPage />} />
+          <Route exact path="/plans/:id" element={<PlanPage />} />
         </Route>
       </Routes>
       </AuthProvider>
