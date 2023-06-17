@@ -154,7 +154,7 @@ db.createCollection("user", {
 });
 //db.user.createIndex({"gymGoer.hasCompleted.completionDate":-1})
 
-db.createCollection("hasCompleted", {
+db.createCollection("completedWorkouts", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
@@ -183,7 +183,7 @@ db.createCollection("hasCompleted", {
         }
     }
 })
-db.hasCompleted.createIndex({"goerId":1, "dateCompleted":-1})
+db.completedWorkouts.createIndex({"goerId":1, "dateCompleted":-1})
 
 db.createCollection("exercise",{
     validator:{

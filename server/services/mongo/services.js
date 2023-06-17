@@ -71,8 +71,8 @@ export default { createTest, getTest }
 //     workoutVals = getWorkoutById(workoutId)
 //     //get the current date
 //     dateCompleted = new Date();
-//     //insert all values into the hasCompleted collection
-//     db.collection("hasCompleted").insertOne({goerId: userId, workoutId: workoutId, partOf: workoutVals.partOf, caloriesBurned: workoutVals.caloriesBurned, dateCompleted: dateCompleted})
+//     //insert all values into the completedWorkouts collection
+//     db.collection("completedWorkouts").insertOne({goerId: userId, workoutId: workoutId, partOf: workoutVals.partOf, caloriesBurned: workoutVals.caloriesBurned, dateCompleted: dateCompleted})
 // }
 
 // async function getPlansByUser(userId) {
