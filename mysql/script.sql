@@ -72,7 +72,7 @@ CREATE TABLE workout(
     duration INT, -- number of minutes
     image VARCHAR(2083),
     scheduled_day INT,
-    calories_burned FLOAT,
+    calories_burned FLOAT DEFAULT 0,
     plan_id INT,
     influencer_id INT NOT NULL,
     PRIMARY KEY(id),
