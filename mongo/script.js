@@ -81,7 +81,7 @@ db.createCollection("user", {
                         },
                         subscriptions: {
                             bsonType: "array",
-                            description: "array holding the name of plans that the user subscribes to",
+                            description: "array holding the _id of plans that the user subscribes to",
                             items: {
                               planId: {
                                 bsonType: "ObjectId",
@@ -172,7 +172,7 @@ db.createCollection("hasCompleted", {
                     description: "date the workout was completed by the user"
                 },
                 caloriesBurned: {
-                    bsonType: "float",
+                    bsonType: "double",
                     description: "calories burned in the workout -- from workout.caloriesBurned where workout._id = workoutId"
                 },
                 associatedPlanId: {
@@ -200,9 +200,9 @@ db.createCollection("exercise",{
                     description: "a brief description of how to do the exercise",
                     required: true
                 },
-                imagePath: {
+                image: {
                     bsonType: "string",
-                    description: "path to get to the image",
+                    description: "url of the image",
                     required: true
                 },
                 equipment: {
@@ -211,7 +211,7 @@ db.createCollection("exercise",{
                     required: true
                 },
                 caloriesBurned: {
-                    bsonType: "int",
+                    bsonType: "double",
                     description: "how many calories are burned in one rep of the exercise",
                     required: true
                 },
@@ -356,9 +356,9 @@ db.createCollection("workout",{
                     description: "how long the workout takes to complete in minutes",
                     required: true
                 },
-                image: {      //i think maybe we should get rid of this
+                image: {  
                     bsonType: "string",
-                    description: "path to image",
+                    description: "url of image",
                     required: true
                 },
                 scheduledDay: {
@@ -393,7 +393,7 @@ db.createCollection("workout",{
                                 required: true
                             },
                             caloriesBurned: {
-                                bsonType: "int",
+                                bsonType: "double",
                                 description: "calories burned by doing all the reps in the set",
                             },
                             exercise: {
@@ -409,9 +409,9 @@ db.createCollection("workout",{
                                         description: "a brief description of how to do the exercise",
                                         required: true
                                     },
-                                    imagePath: {
+                                    image: {
                                         bsonType: "string",
-                                        description: "path to get to the image",
+                                        description: "url of the image",
                                         required: true
                                     },
                                     equipment: {
@@ -420,7 +420,7 @@ db.createCollection("workout",{
                                         required: true
                                     },
                                     caloriesBurned: {
-                                        bsonType: "int",
+                                        bsonType: "double",
                                         description: "how many calories are burned in one rep of the exercise",
                                         required: true
                                     },
@@ -458,20 +458,10 @@ db.createCollection("category",{
                     description: "a brief description of the category",
                     required: true
                 },
-                imagePath: {
+                image: {
                     bsonType: "string",
-                    description: "string containing the path to the image",
+                    description: "url containing image",
                     required: true
-                },
-                planList: {
-                    bsonType: "array",
-                    description: "array holding the ids of the plans in the category",
-                    items: {
-                        planId: {
-                          bsonType: "ObjectId",
-                          description: "id of plan in the category"
-                        }
-                    }
                 }
             }
         }
