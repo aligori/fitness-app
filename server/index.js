@@ -61,6 +61,20 @@ app.get('/users', async (req, res) => {
   }
 )
 
+app.get('/users/:id/report', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = await services.getBestPlanByGoer(id);
+        res.status(200).send({
+          message: 'Report created', data
+        })
+    } catch
+      (err)
+    {
+      res.status(500).send('Internal server error!');
+    }
+})
+
 app.get('/categories', async (req, res) => {
     try {
       const data = await services.getCategories();
@@ -87,6 +101,19 @@ app.get('/categories/:id', async (req, res) => {
     }
   }
 )
+
+app.get('/categories/:id/report', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = await services.getBestPlanByCategory(id);
+        res.status(200).send({
+          message: 'Success', data
+        });
+    } catch
+      (err) {
+        res.status(500).send({ error: 'Internal server error' })
+      }
+})
 
 app.get('/plans/:id', async (req, res) => {
     try {
