@@ -20,17 +20,6 @@ CREATE TABLE gym_goer(
     FOREIGN KEY (goer_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
-DELIMITER //
-
-CREATE TRIGGER calculate_age_trigger
-    BEFORE INSERT ON gym_goer
-    FOR EACH ROW
-BEGIN
-    SET NEW.age = FLOOR(DATEDIFF(CURDATE(), NEW.birthday) / 365.25);
-END;//
-
-DELIMITER ;
-
 CREATE TABLE fitness_influencer(
     influencer_id INT,
     first_name VARCHAR(32),
@@ -91,18 +80,6 @@ CREATE TABLE workout(
     FOREIGN KEY (influencer_id) REFERENCES fitness_influencer (influencer_id) ON DELETE CASCADE
 );
 
-
-DELIMITER //
-CREATE TRIGGER update_workout_calories_trigger
-    AFTER INSERT ON `set` FOR EACH ROW
-BEGIN
-    UPDATE workout
-    SET calories_burned = calories_burned + NEW.calories
-    WHERE id = NEW.workout_id;
-END //
-DELIMITER ;
-
-
 -- weak entity
 CREATE TABLE `set`(
     set_no INT,
@@ -117,15 +94,7 @@ CREATE TABLE `set`(
     FOREIGN KEY (exercise_id) REFERENCES exercise(id) ON DELETE CASCADE
 );
 
-DELIMITER //
-CREATE TRIGGER calculate_calories_per_set_trigger
-    BEFORE INSERT ON `set` FOR EACH ROW
-BEGIN
-    DECLARE exercise_calories FLOAT;
-    SELECT calories_burned INTO exercise_calories FROM exercise WHERE id = NEW.exercise_id;
-    SET NEW.calories = exercise_calories * NEW.reps;
-END //
-DELIMITER ;
+
 
 -- gym goer subscribes to plan: many to many (+ date)
 CREATE TABLE subscription(
@@ -162,3 +131,39 @@ CREATE TABLE follower(
     FOREIGN KEY (goer_id) REFERENCES gym_goer (goer_id) ON DELETE CASCADE,
     FOREIGN KEY (influencer_id) REFERENCES fitness_influencer (influencer_id) ON DELETE CASCADE
 );
+
+DELIMITER //
+
+CREATE TRIGGER calculate_age_trigger
+    BEFORE INSERT ON gym_goer
+    FOR EACH ROW
+BEGIN
+    SET NEW.age = FLOOR(DATEDIFF(CURDATE(), NEW.birthday) / 365.25);
+END;//
+
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER calculate_calories_per_set_trigger
+    BEFORE INSERT ON `set` FOR EACH ROW
+BEGIN
+    DECLARE exercise_calories FLOAT;
+    SELECT calories_burned INTO exercise_calories FROM exercise WHERE id = NEW.exercise_id;
+    SET NEW.calories = exercise_calories * NEW.reps;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER update_workout_calories_trigger
+    AFTER INSERT ON `set` FOR EACH ROW
+BEGIN
+    UPDATE workout
+    SET calories_burned = calories_burned + NEW.calories
+    WHERE id = NEW.workout_id;
+END //
+DELIMITER ;
+
+
+
