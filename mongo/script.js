@@ -1,178 +1,189 @@
-mongo/script.js
-
 // db = new Mongo().getDB("fitness-app-mongo-db");
 
-db.createCollection("testCollection", {
-    validator: {
-      $jsonSchema: {
-        bsonType: "object",
-        properties: {
-          email: {
-            bsonType: "int",
-            description: "email address",
-            required: true
-          },
-          firstname: {
-            bsonType: "string",
-            description: "firstname of the user",
-            required: true
-          },
-          lastname: {
-            bsonType: "string",
-            description: "lastname for the user",
-            required: true
-          }
-        }
-      }
-    }
-});
+// db.createCollection("testCollection", {
+//     validator: {
+//       $jsonSchema: {
+//         bsonType: "object",
+//         properties: {
+//           email: {
+//             bsonType: "int",
+//             description: "email address",
+//             required: true
+//           },
+//           firstname: {
+//             bsonType: "string",
+//             description: "firstname of the user",
+//             required: true
+//           },
+//           lastname: {
+//             bsonType: "string",
+//             description: "lastname for the user",
+//             required: true
+//           }
+//         }
+//       }
+//     }
+// });
 
 db.createCollection("user", {
     validator: {
-      $jsonSchema: {
-        bsonType: "object",
-        properties: {
-          email: {
-              bsonType: "string",
-              description: "email address of the user",
-              required: true
-          },
-          password: {
-              bsonType: "string",
-              description: "password of the user", //needs to be hashed somehow
-              required: true
-          },
-          username: {
-              bsonType: "string",
-              description: "username of the user",
-              required: true
-          },
-          gymGoer: {
-              bsonType: "objectId",
-              required: ["weight", "height", "birthday", "age", "membershipType"],
-              properties: {
-                  weight: {
-                      bsonType: "int",
-                      description: "gym goer's weight"
-                  },
-                  height: {
-                      bsonType: "int",
-                      description: "gym goer's height"
-                  },
-                  birthday: {
-                      bsonType: "date",
-                      description: "gym goer's birthday"
-                  },
-                  age: {
-                      bsonType: "int",
-                      description: "gym goer's age"
-                  },
-                  membershipType: {
-                      bsonType: "string",
-                      description: "gym goer's selected membership type"
-                  },
-                  hasCompleted: {
-                      bsonType: "array",
-                      description: "array holding the workouts completed by the gym goer",
-                      items: {
-                          bsonType: "object",
-                          properties: {
-                            referencedWorkout: {
-                              bsonType: "ObjectId",
-                              description: "_id from completed workout"
-                            },
-                            completionDate: {
-                              bsonType: "date",
-                              description: "date workout was completed"
+        $jsonSchema: {
+            bsonType: "object",
+            properties: {
+                email: {
+                    bsonType: "string",
+                    description: "email address of the user",
+                    required: true
+                },
+                password: {
+                    bsonType: "string",
+                    description: "password of the user", //needs to be hashed somehow
+                    required: true
+                },
+                username: {
+                    bsonType: "string",
+                    description: "username of the user",
+                    required: true
+                },
+                gymGoer: {
+                    bsonType: "object",
+                    required: ["weight", "height", "birthday", "age", "membershipType"],
+                    properties: {
+                        weight: {
+                            bsonType: "int",
+                            description: "gym goer's weight"
+                        },
+                        height: {
+                            bsonType: "int",
+                            description: "gym goer's height"
+                        },
+                        birthday: {
+                            bsonType: "date",
+                            description: "gym goer's birthday"
+                        },
+                        age: {
+                            bsonType: "int",
+                            description: "gym goer's age"
+                        },
+                        membershipType: {
+                            bsonType: "string",
+                            description: "gym goer's selected membership type"
+                        },
+                        friends: {
+                            bsonType: "array",
+                            description: "array holding the user's list of friends",
+                            items: {
+                              friendId: {
+                                bsonType: "ObjectId",
+                                description: "_id of friend of user"
+                              }
                             }
-                          }
-                      }
-                  },
-                  friends: {
-                      bsonType: "array",
-                      description: "array holding the user's list of friends",
-                      items: {
-                        friendId: {
-                          bsonType: "ObjectId",
-                          description: "_id of friend of user"
+                        },
+                        subscriptions: {
+                            bsonType: "array",
+                            description: "array holding the name of plans that the user subscribes to",
+                            items: {
+                              planId: {
+                                bsonType: "ObjectId",
+                                description: "_id of the plan the user is subscribed to"
+                              }
+                            }
+                        },
+                        follows: {
+                            bsonType: "array",
+                            description: "array holding the ids of the influencer the gym goer follows",
+                            items: {
+                                influencerId: {
+                                  bsonType: "ObjectId",
+                                  description: "_id of the influencer the gym goer follows"
+                                }
+                            }
                         }
-                      }
-                  },
-                  subscriptions: {
-                      bsonType: "array",
-                      description: "array holding the name of plans that the user subscribes to",
-                      items: {
-                        planId: {
-                          bsonType: "ObjectId",
-                          description: "_id of the plan the user is subscribed to"
+                    }
+                },
+        
+                fitnessInfluencer: {
+                    bsonType: "objectId",
+                    required: ["firstName", "lastName", "experience", "bio"],
+                    properties: {
+                        firstName: {
+                            bsonType: "string",
+                            description: "fitness influencer's first name"
+                        },
+                        lastName: {
+                            bsonType: "string",
+                            description: "fitness influencer's last name"
+                        },
+                        experience: {
+                            bsonType: "int",
+                            description: "years of experience fitness influencer has"
+                        },
+                        website: {
+                            bsonType: "string",
+                            description: "link to the fitness influencer's personal website"
+                        },
+                        bio: {
+                            bsonType: "string",
+                            description: "fitness influencer's biography"
+                        },
+                        createdPlans: {
+                            bsonType: "array",
+                            description: "array holding id's for plans created by the influencer",
+                            items: {
+                                planId: {
+                                  bsonType: "ObjectId",
+                                  description: "id for plan created by influencer"
+                                }
+                            }
+                        },
+                        unpublishedWorkouts: {
+                            bsonType: "array",
+                            description: "array holding ids for workouts created by the influencer",
+                            items: {
+                                workoutId:{
+                                  bsonType: "ObjectId",
+                                  description: "id for workout created by the influencer"
+                                }
+                            }
                         }
-                      }
-                  },
-                  follows: {
-                      bsonType: "array",
-                      description: "array holding the ids of the influencer the gym goer follows",
-                      items: {
-                          influencerId: {
-                            bsonType: "ObjectId",
-                            description: "_id of the influencer the gym goer follows"
-                          }
-                      }
-                  }
-              }
-          },
-  
-          fitnessInfluencer: {
-              bsonType: "objectId",
-              required: ["firstName", "lastName", "experience", "bio"],
-              properties: {
-                  firstName: {
-                      bsonType: "string",
-                      description: "fitness influencer's first name"
-                  },
-                  lastName: {
-                      bsonType: "string",
-                      description: "fitness influencer's last name"
-                  },
-                  experience: {
-                      bsonType: "int",
-                      description: "years of experience fitness influencer has"
-                  },
-                  website: {
-                      bsonType: "string",
-                      description: "link to the fitness influencer's personal website"
-                  },
-                  bio: {
-                      bsonType: "string",
-                      description: "fitness influencer's biography"
-                  },
-                  createdPlans: {
-                      bsonType: "array",
-                      description: "array holding id's for plans created by the influencer",
-                      items: {
-                          planId: {
-                            bsonType: "ObjectId",
-                            description: "id for plan created by influencer"
-                          }
-                      }
-                  },
-                  createdWorkouts: {
-                      bsonType: "array",
-                      description: "array holding ids for workouts created by the influencer",
-                      items: {
-                          workoutId:{
-                            bsonType: "ObjectId",
-                            description: "id for workout created by the influencer"
-                          }
-                      }
-                  }
-  
-              }
-          },
+                    }
+                }
+            }
         }
-      }
     }
-  });
-db.user.createIndex({completionDate:-1})
+});
+//db.user.createIndex({"gymGoer.hasCompleted.completionDate":-1})
+
+db.createCollection("hasCompleted", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            properties: {
+                goerId: {
+                    bsonType: "ObjectId",
+                    description: "_id of the user who completed the workout"
+                },
+                workoutId: {
+                    bsonType: "ObjectId",
+                    description: "_id of the workout the user completed"
+                },
+                dateCompleted: {
+                    bsonType: "date",
+                    description: "date the workout was completed by the user"
+                },
+                caloriesBurned: {
+                    bsonType: "float",
+                    description: "calories burned in the workout -- from workout.caloriesBurned where workout._id = workoutId"
+                },
+                associatedPlanId: {
+                    bsonType: "ObjectId",
+                    description: "_id of the plan the workout is part of -- from workout.planId where workout.partOf = associatedPlanId"
+                }
+            }
+        }
+    }
+})
+db.hasCompleted.createIndex({"goerId":1, "dateCompleted":-1})
 
 db.createCollection("exercise",{
     validator:{
@@ -195,12 +206,8 @@ db.createCollection("exercise",{
                     required: true
                 },
                 equipment: {
-                    bsonType: "array",
+                    bsonType: "string",
                     description: "list of equipment needed to do the exercise",
-                    items: {
-                      bsonType: "string",
-                      description: "one piece of equipment necessary"
-                    },
                     required: true
                 },
                 caloriesBurned: {
@@ -247,38 +254,87 @@ db.createCollection("plan", {
                     description: "number of weeks the plan takes to complete",
                     required: true
                 },
-                workoutIds: {
-                  bsonType: "array",
-                  description: "list of workouts in the plan",
-                  items: {
-                    workoutId: {
-                      bsonType: "ObjectId",
-                      description: "id of workout in plan"
+                workoutsInfo: { //this is an example of denormalization
+                    bsonType: "array",
+                    description: "list of workouts in the plan",
+                    items: {
+                        workoutVals: "Object", 
+                        properties: {
+                            workoutId: {
+                                bsonType: "ObjectId",
+                                description: "_id of workout in plan"
+                            },
+                            title: {
+                                bsonType: "string",
+                                description: "title of the workout in the plan"
+                            },
+                            difficulty: {
+                                bsonType: "string",
+                                description: "difficulty of the workout in the plan"
+                            },
+                            duration: {
+                                bsonType: "int",
+                                description: "length of the workout in the plan"
+                            }
+                        }
                     }
-                  }
                 },
                 subscribers: {
                     bsonType: "array",
                     description: "array holding the subscriber ids and subscription dates",
                     items: {
-                      bsonType: "object",
-                      properties: {
-                        subscriberId: {
-                          bsonType: "ObjectId",
-                          description: "id of goer who subscribed to the plan"
-                        },
-                        subscriptionDate: {
-                          bsonType: "date",
-                          description: "date the subscriber subscribed to the plan"
+                        bsonType: "object",
+                        properties: {
+                            subscriberId: {
+                                bsonType: "ObjectId",
+                                description: "id of goer who subscribed to the plan"
+                            },
+                            subscriptionDate: {
+                                bsonType: "date",
+                                description: "date the subscriber subscribed to the plan"
+                            }
                         }
-                      }
+                    }
+                },
+                createdBy: {
+                    bsonType: "array",
+                    description: "array holding info about the creator of the plan",
+                    items: {
+                        bsonType: "object",
+                        properties: {
+                            creatorId: {
+                                bsonType: "ObjectId",
+                                description: "_id for the creator of the plan"
+                            },
+                            firstName: {
+                                bsonType: "string",
+                                description: "first name of the creator of the plan"
+                            },
+                            lastName: {
+                                bsonType: "string",
+                                description: "last name of the creator of the plan"
+                            }
+                        }
+                    }
+                },
+                category: {
+                    bsonType: "object",
+                    properties: {
+                        categoryId: {
+                          bsonType: "ObjectId",
+                          description: "_id of the category the plan is in"
+                        },
+                        categoryName: {
+                            bsonType: "string",
+                            description: "name of the category the plan is in"
+                        }
                     }
                 }
             }
         }
     }
 });
-db.plan.createIndex({"subscriptionDate":-1});
+db.plan.createIndex({"category.categoryId": 1},{"subscribers.subscriptionDate":-1});
 
 db.createCollection("workout",{
     validator:{
@@ -316,76 +372,76 @@ db.createCollection("workout",{
                     required: true
                 },
                 sets: {
-                  bsonType: "array",
-                  description: "array of sets within workout",
-                  items: {
-                    bsonType: "Object",
-                    properties: {
-                      composedOf: {
-                        bsonType: "ObjectId",
-                        description: "foreign key referencing the associated exercise"
-                      },
-                      setNo: {
-                        bsonType: "int",
-                        description: "the ordered value in which to perform the set",
-                        required: true
-                      },
-                      reps: {
-                        bsonType: "int",
-                        description: "the number of reps of the exercise to be done",
-                        required: true
-                      },
-                      breakTime: {
-                        bsonType: "int",
-                        description: "the amount of time to rest between sets",
-                        required: true
-                      },
-                      calories: {
-                        bsonType: "int",
-                        description: "calories burned by doing all the reps in the set",
-                      }
-                    }
-                  },
-
+                    bsonType: "array",
+                    description: "array of sets within workout",
+                    items: {
+                        bsonType: "Object",
+                        properties: {
+                            setNo: {
+                                bsonType: "int",
+                                description: "the ordered value in which to perform the set",
+                                required: true
+                            },
+                            reps: {
+                                bsonType: "int",
+                                description: "the number of reps of the exercise to be done",
+                                required: true
+                            },
+                            breakTime: {
+                                bsonType: "int",
+                                description: "the amount of time to rest between sets",
+                                required: true
+                            },
+                            caloriesBurned: {
+                                bsonType: "int",
+                                description: "calories burned by doing all the reps in the set",
+                            },
+                            exercise: {
+                                bsonType: "object",
+                                properties: {
+                                    title: {
+                                        bsonType: "string",
+                                        description: " name of the exercise",
+                                        required: true
+                                    },
+                                    description: {
+                                        bsonType: "string",
+                                        description: "a brief description of how to do the exercise",
+                                        required: true
+                                    },
+                                    imagePath: {
+                                        bsonType: "string",
+                                        description: "path to get to the image",
+                                        required: true
+                                    },
+                                    equipment: {
+                                        bsonType: "string",
+                                        description: "list of equipment needed to do the exercise",
+                                        required: true
+                                    },
+                                    caloriesBurned: {
+                                        bsonType: "int",
+                                        description: "how many calories are burned in one rep of the exercise",
+                                        required: true
+                                    },
+                                    muscleGroups: { //array
+                                        bsonType: "array",
+                                        description: "list of muscle groups targeted by the exercise",
+                                        items: {
+                                          bsonType: "string",
+                                          description: "one muscle group targeted by exercise"
+                                        },
+                                        required: true
+                                    }
+                                }
+                            }
+                        }
+                    },
                 }
             }
         }
     }
 });
-// db.createCollection("set",{
-//     validator:{
-//         $jsonSchema: {
-//             bsonType: "object",
-//             properties: {
-//                 workoutID: {
-//                     bsonType: "objectId", 
-//                     description: "foreign key referencing the associated workout",
-//                     required: true}, //the workout the set belongs to, uses objectId automatically generated by MongoDB
-//                 composedOf: {
-//                     bsonType: "objectId", 
-//                     description: "foreign key referencing the associated exercise",
-//                     required: true}, //the exercise that the set is made of, uses objectId automatically generated by MongoDB
-//                 setNo: {
-//                     bsonType:"int", 
-//                     description: "the ordered value in which to perform the sets",
-//                     required: true},
-//                 reps: {
-//                     bsonType:"int", 
-//                     description: "the number of reps of the exercise to be done",
-//                     required: true},
-//                 breakTime: { 
-//                     bsonType: "int", 
-//                     description: "the amount of time to rest between sets",
-//                     required: true},
-//                 calories: {
-//                     bsonType: "int",
-//                     description: "calories burned by doing all reps of exercise in the set", 
-//                     required: true}
-//             }
-//         }
-//     }
-
-// });
 
 db.createCollection("category",{
     validator:{
@@ -421,4 +477,3 @@ db.createCollection("category",{
         }
     }
 });
-db.collection.createIndex({"title": 1}, {unique:true});
