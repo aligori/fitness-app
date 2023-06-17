@@ -14,13 +14,11 @@ export let db;
 
 export async function connectToMongo() {
     try {
-      // Connect the client to the server
       const conn = await client.connect();
       db = conn.db(dbName)
 
-      // PING to confirm a successful connection
       await client.db(dbName).command({ ping: 1 });
-      console.log("Pinged your deployment. Successfully connected to MongoDB!");
+      console.log("Successfully connected to MongoDB!");
     } catch (error) {
       throw error
     }

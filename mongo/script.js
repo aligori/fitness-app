@@ -1,29 +1,4 @@
-// db = new Mongo().getDB("fitness-app-mongo-db");
-
-// db.createCollection("testCollection", {
-//     validator: {
-//       $jsonSchema: {
-//         bsonType: "object",
-//         properties: {
-//           email: {
-//             bsonType: "int",
-//             description: "email address",
-//             required: true
-//           },
-//           firstname: {
-//             bsonType: "string",
-//             description: "firstname of the user",
-//             required: true
-//           },
-//           lastname: {
-//             bsonType: "string",
-//             description: "lastname for the user",
-//             required: true
-//           }
-//         }
-//       }
-//     }
-// });
+const db = new Mongo().getDB("fitness-app-mongo-db");
 
 db.createCollection("user", {
     validator: {
@@ -37,7 +12,7 @@ db.createCollection("user", {
                 },
                 password: {
                     bsonType: "string",
-                    description: "password of the user", //needs to be hashed somehow
+                    description: "password of the user",
                     required: true
                 },
                 username: {
@@ -154,7 +129,7 @@ db.createCollection("user", {
 });
 //db.user.createIndex({"gymGoer.hasCompleted.completionDate":-1})
 
-db.createCollection("hasCompleted", {
+db.createCollection("completedWorkouts", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
@@ -183,7 +158,8 @@ db.createCollection("hasCompleted", {
         }
     }
 })
-db.hasCompleted.createIndex({"goerId":1, "dateCompleted":-1})
+
+db.completedWorkouts.createIndex({"goerId":1, "dateCompleted":-1})
 
 db.createCollection("exercise",{
     validator:{
@@ -200,7 +176,7 @@ db.createCollection("exercise",{
                     description: "a brief description of how to do the exercise",
                     required: true
                 },
-                imagePath: {
+                image: {
                     bsonType: "string",
                     description: "path to get to the image",
                     required: true
@@ -258,7 +234,7 @@ db.createCollection("plan", {
                     bsonType: "array",
                     description: "list of workouts in the plan",
                     items: {
-                        workoutVals: "Object", 
+                        bsonType: "Object",
                         properties: {
                             workoutId: {
                                 bsonType: "ObjectId",
@@ -275,6 +251,10 @@ db.createCollection("plan", {
                             duration: {
                                 bsonType: "int",
                                 description: "length of the workout in the plan"
+                            },
+                            scheduledDay: {
+                                bsonType: "int",
+                                description: "day number from the start of the plan"
                             }
                         }
                     }
@@ -289,7 +269,7 @@ db.createCollection("plan", {
                                 bsonType: "ObjectId",
                                 description: "id of goer who subscribed to the plan"
                             },
-                            subscriptionDate: {
+                            subscribeDate: {
                                 bsonType: "date",
                                 description: "date the subscriber subscribed to the plan"
                             }
@@ -297,23 +277,19 @@ db.createCollection("plan", {
                     }
                 },
                 createdBy: {
-                    bsonType: "array",
-                    description: "array holding info about the creator of the plan",
-                    items: {
-                        bsonType: "object",
-                        properties: {
-                            creatorId: {
-                                bsonType: "ObjectId",
-                                description: "_id for the creator of the plan"
-                            },
-                            firstName: {
-                                bsonType: "string",
-                                description: "first name of the creator of the plan"
-                            },
-                            lastName: {
-                                bsonType: "string",
-                                description: "last name of the creator of the plan"
-                            }
+                    bsonType: "object",
+                    properties: {
+                        creatorId: {
+                            bsonType: "ObjectId",
+                            description: "_id for the creator of the plan"
+                        },
+                        firstName: {
+                            bsonType: "string",
+                            description: "first name of the creator of the plan"
+                        },
+                        lastName: {
+                            bsonType: "string",
+                            description: "last name of the creator of the plan"
                         }
                     }
                 },
@@ -399,7 +375,7 @@ db.createCollection("workout",{
                             exercise: {
                                 bsonType: "object",
                                 properties: {
-                                    title: {
+                                    name: {
                                         bsonType: "string",
                                         description: " name of the exercise",
                                         required: true
@@ -409,7 +385,7 @@ db.createCollection("workout",{
                                         description: "a brief description of how to do the exercise",
                                         required: true
                                     },
-                                    imagePath: {
+                                    image: {
                                         bsonType: "string",
                                         description: "path to get to the image",
                                         required: true
@@ -419,12 +395,12 @@ db.createCollection("workout",{
                                         description: "list of equipment needed to do the exercise",
                                         required: true
                                     },
-                                    caloriesBurned: {
+                                    calories: {
                                         bsonType: "int",
                                         description: "how many calories are burned in one rep of the exercise",
                                         required: true
                                     },
-                                    muscleGroups: { //array
+                                    muscleGroups: {
                                         bsonType: "array",
                                         description: "list of muscle groups targeted by the exercise",
                                         items: {
@@ -448,9 +424,9 @@ db.createCollection("category",{
         $jsonSchema: {
             bsonType: "object",
             properties: {
-                title: {
+                name: {
                     bsonType: "string",
-                    description: "title of the category",
+                    description: "name of the category",
                     required: true
                 },
                 description: {
@@ -458,21 +434,11 @@ db.createCollection("category",{
                     description: "a brief description of the category",
                     required: true
                 },
-                imagePath: {
+                image: {
                     bsonType: "string",
                     description: "string containing the path to the image",
                     required: true
                 },
-                planList: {
-                    bsonType: "array",
-                    description: "array holding the ids of the plans in the category",
-                    items: {
-                        planId: {
-                          bsonType: "ObjectId",
-                          description: "id of plan in the category"
-                        }
-                    }
-                }
             }
         }
     }

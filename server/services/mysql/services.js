@@ -8,8 +8,22 @@ import {planMapper} from "../../utils/mappers/plan.js";
 import {workoutMapper} from "../../utils/mappers/workout.js";
 import moment from "moment";
 
+async function resetDatabase() {
+    await db.executeQuery('DELETE FROM user')
+    await db.executeQuery("ALTER TABLE user AUTO_INCREMENT=1")
+    await db.executeQuery('DELETE FROM plan')
+    await db.executeQuery("ALTER TABLE plan AUTO_INCREMENT=1")
+    await db.executeQuery('DELETE FROM workout')
+    await db.executeQuery("ALTER TABLE workout AUTO_INCREMENT=1")
+    await db.executeQuery('DELETE FROM exercise')
+    await db.executeQuery("ALTER TABLE exercise AUTO_INCREMENT=1")
+    await db.executeQuery('DELETE FROM category')
+    await db.executeQuery("ALTER TABLE category AUTO_INCREMENT=1")
+}
+
 async function fillDatabase() {
     // TODO: Prune database before inserting
+    await resetDatabase();
 
     // Creating Gym Goer Users
     const gymGoerUsers = Array.from({ length: 100 }, () => ([
@@ -39,7 +53,7 @@ async function fillDatabase() {
         faker.internet.avatar(),
     ]));
 
-    const influencerIds = Array.from({length: 20}, (_, i) => i + 100);
+    const influencerIds = Array.from({length: 20}, (_, i) => i + 101);
     const influencers = influencerIds.map((id) => [
         id,
         faker.person.firstName(),
@@ -70,7 +84,7 @@ async function fillDatabase() {
 
         for (let i = 1; i <= numberOfPlansInCategory; i++) {
             const planDuration = getRandomInt(7, 30);
-            const influencerId = getRandomInt(100, 119);
+            const influencerId = getRandomInt(101, 119);
 
             const plan = {
                 title: faker.lorem.words(),

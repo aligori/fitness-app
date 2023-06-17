@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv'
 import mysqlServices from './services/mysql/services.js'
 import mongoServices from './services/mongo/services.js'
 import {connectToMongo} from './services/mongo/db.service.js'
+import {migrateDatabase} from "./services/migrate.js";
 
 dotenv.config()
 const app = express();
@@ -34,11 +35,12 @@ app.post('/migrate', async (req, res) => {
     // Connect to mongo db
     await connectToMongo()
     // Call a migrate function that converts rdbms data to nosql data
+    await migrateDatabase()
     // Change to services that use mongo
     services = mongoServices
     res.status(200).send('Migrate message changed!');
   } catch (err) {
-    res.status(500).send('Internal server error!');
+    res.status(500).send({error: err.message});
   }
 })
 

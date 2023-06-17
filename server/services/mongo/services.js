@@ -9,6 +9,13 @@ async function getTest(){
     return await db.collection('testCollection').find().toArray();
 }
 
+async function resetDatabase() {
+    await db.collection('user').deleteMany({});
+    await db.collection('category').deleteMany({});
+    await db.collection('exercise').deleteMany({});
+    await db.collection('plan').deleteMany({});
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // async function getGymGoers() {
@@ -78,4 +85,4 @@ async function getTest(){
 //insert statements
 
 
-export default { createTest, getTest }
+export default { resetDatabase }
