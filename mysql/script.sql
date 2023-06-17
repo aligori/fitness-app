@@ -83,12 +83,25 @@ CREATE TABLE workout(
     duration INT, -- number of minutes
     image VARCHAR(2083),
     scheduled_day INT,
+    calories_burned FLOAT,
     plan_id INT,
     influencer_id INT NOT NULL,
     PRIMARY KEY(id),
     FOREIGN KEY (plan_id) REFERENCES plan (id) ON DELETE CASCADE,
     FOREIGN KEY (influencer_id) REFERENCES fitness_influencer (influencer_id) ON DELETE CASCADE
 );
+
+
+DELIMITER //
+CREATE TRIGGER update_workout_calories_trigger
+    AFTER INSERT ON `set` FOR EACH ROW
+BEGIN
+    UPDATE workout
+    SET calories_burned = calories_burned + NEW.calories
+    WHERE id = NEW.workout_id;
+END //
+DELIMITER ;
+
 
 -- weak entity
 CREATE TABLE `set`(
@@ -105,7 +118,7 @@ CREATE TABLE `set`(
 );
 
 DELIMITER //
-CREATE TRIGGER calculate_calories_trigger
+CREATE TRIGGER calculate_calories_per_set_trigger
     BEFORE INSERT ON `set` FOR EACH ROW
 BEGIN
     DECLARE exercise_calories FLOAT;
