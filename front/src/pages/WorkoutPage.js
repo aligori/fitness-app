@@ -1,26 +1,53 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import Layout from "../hoc/Layout";
 import animation from "../assets/animations/workout.json";
 import Lottie from "../core/Lottie";
-import WorkoutCard from "../components/WorkoutCard";
 import DefaultButton from "../core/buttons/DefaultButton";
 import SetCard from "../components/SetCard";
+import {useLocation, useParams} from "react-router";
+import useData from "../hooks/useData";
+import {API} from "../utils/plugins/API";
+import {showError, showSuccess} from "../utils/helpers";
+import moment from "moment";
 
+const WorkoutPage = ({}) => {
+  const [completed, setCompleted] = useState(0);
 
-const WorkoutPage = () => {
-  const [workout, setWorkout] = useState({});
+  const { workoutId } = useParams();
+  const workout = useData(`/workouts/${workoutId}`, [completed]);
 
-  useEffect(() => {
-    // get plan
-  }, []);
+  const location = useLocation();
+
+  const complete = async () => {
+    try {
+      const response = await API.post(`/workouts/${workoutId}/complete`);
+      showSuccess(response.message)
+      setCompleted(prev => prev+1)
+    } catch (err) {
+      showError(err.message)
+    }
+  }
 
   return (
     <Layout>
       <div className="flex items-center px-40 py-8 bg-gradient-to-r from-blue-100 shadow-inner">
         <div className="flex flex-1 flex-col">
-          <span className="font-semibold text-3xl uppercase tracking-tight text-gray-900">Workout Plan Title</span>
-          <span className="uppercase text-lg text-gray-500 mt-1 tracking-tight">Workout Plan</span>
-          <DefaultButton label="Subscribe" className="w-32 mt-4" xs />
+          <span className="font-semibold text-4xl uppercase tracking-tight text-orange-500">Day {workout?.scheduledDay}</span>
+          <span className="font-semibold text-2xl uppercase tracking-tight text-gray-900">{workout?.title || 'This is the name of the workout'}</span>
+          <span className="uppercase text-lg text-gray-500 mt-1 tracking-tight">Plan: {location.state?.planTitle || 'Workout Plan'}</span>
+          {location.state?.isSubscribed && (
+            <>
+            {
+              workout?.completedAt
+                ?
+                <span className="mt-4 text-center bg-emerald-100 text-emerald-400 px-2 py-1 rounded-lg w-32 font-medium text-sm border border-emerald-400">
+                  Completed on {moment(workout.completedAt).format('DD/MM/YYYY')}
+                </span>
+                : <DefaultButton onClick={complete} label="Complete workout" className="w-52 mt-4" xs />
+            }
+            </>
+          )
+          }
         </div>
         <div>
           <Lottie itemKey="loadingItem" animationData={animation} width={250} />
@@ -30,22 +57,19 @@ const WorkoutPage = () => {
         <div className="pr-4 border-r border-r-[2px] border-r-gray-400">
           Program Overview
         </div>
+        <div className="px-4 border-r border-r-[2px] border-r-gray-400">
+          Previous Workout
+        </div>
         <div className="px-4">
-          Get Started
+          Next Workout
         </div>
       </div>
-      <div className="px-40 pb-20">
-        <div className="my-10">
-          "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
-        </div>
-        <div>
-          <span className="font-semibold text-lg uppercase">Workouts</span>
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-x-4">
-            {[].map((plan, index) => (
-              <SetCard key={index} />
+      <div className="px-40 pb-20 pt-10">
+          <div className="grid grid-cols-1 gap-y-4">
+            {workout?.sets && workout.sets.length && workout.sets.map((set, index) => (
+              <SetCard key={index} set={set} />
             ))}
           </div>
-        </div>
       </div>
     </Layout>
   )

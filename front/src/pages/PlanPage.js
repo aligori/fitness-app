@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Layout from "../hoc/Layout";
 import animation from "../assets/animations/workout.json";
 import Lottie from "../core/Lottie";
@@ -11,16 +11,19 @@ import {showError, showSuccess} from "../utils/helpers";
 
 
 const PlanPage = () => {
+  const [subscribed, setSubscribed] = useState(0);
+
   const navigate = useNavigate()
   const { id } = useParams();
-  const plan = useData(`/plans/${id}`);
+  const plan = useData(`/plans/${id}`, [subscribed]);
 
   const subscribe = async () => {
     try {
-      const response = await API.post('/subscribe');
+      const response = await API.post(`/plans/${id}/subscribe`);
       showSuccess(response.message)
+      setSubscribed(prev => prev+1)
     } catch (err) {
-      showError(err)
+      showError(err.message)
     }
   }
 
@@ -31,7 +34,9 @@ const PlanPage = () => {
           <span className="font-semibold text-3xl uppercase tracking-tight text-gray-900">{plan?.title}</span>
           <span className="uppercase text-lg text-gray-500 mt-1 tracking-tight">Workout Plan</span>
           {plan?.subscribeDate
-            ? <span className="bg-emerald-100 text-emerald-400 px-2 py-1 rounded-lg">Subscribed</span>
+            ? <span className="mt-4 text-center bg-emerald-100 text-emerald-400 px-2 py-1 rounded-lg w-32 font-semibold border border-emerald-400">
+                Subscribed
+              </span>
             : <DefaultButton label="Subscribe" onClick={subscribe} className="w-32 mt-4" xs />
           }
         </div>
@@ -43,7 +48,7 @@ const PlanPage = () => {
         <div className="pr-4 border-r border-r-[2px] border-r-gray-400 text-indigo-500">
           Program Overview
         </div>
-        <div className="px-4 cursor-pointer hover:text-indigo-500 transition duration-500" onClick={() => navigate(`/plan/{planId}/workouts/1`)}>
+        <div className="px-4 cursor-pointer hover:text-indigo-500 transition duration-500" onClick={() => navigate(`/plan/${plan?.id}/workouts/${plan?.workouts[0]}`)}>
           Get Started
         </div>
       </div>
@@ -54,14 +59,25 @@ const PlanPage = () => {
           {
             plan && (
               <div className="grid grid-cols-1 lg:grid-cols-7 gap-x-4">
-                {plan.workouts?.length && plan.workouts.map((workout, index) => (
-                  <>
-                    {(index) % 7 === 0 && index !== plan.workouts?.length - 1 && (
-                      <div className="bg-gray-200 col-span-full mt-5 mb-2 rounded-sm py-1 text-center font-semibold">Week {Math.ceil((index + 1) / 7)}</div>
-                    )}
-                    <WorkoutCard planId={plan.id} key={index} workout={workout} />
-                  </>
-                ))}
+                <div className="bg-gray-200 col-span-full mt-5 mb-2 rounded-sm py-1 text-center font-semibold">Week 1</div>
+                {plan.workouts?.length && plan.workouts.map((workout, index) => {
+                  const lastIndex = plan.workouts?.length - 1
+
+                  return (
+                    <>
+                      <WorkoutCard
+                        planId={plan?.id}
+                        planTitle={plan?.title}
+                        isSubscribed={plan?.subscribeDate}
+                        key={index}
+                        workout={workout}
+                      />
+                      {(index + 1) % 7 === 0 && index !== lastIndex && (
+                        <div className="bg-gray-200 col-span-full mt-5 mb-2 rounded-sm py-1 text-center font-semibold">Week {Math.floor((index + 2) / 7) + 1}</div>
+                      )}
+                    </>
+                  )
+                })}
               </div>
             )
           }

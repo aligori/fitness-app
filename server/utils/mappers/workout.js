@@ -11,6 +11,7 @@ export const workoutMapper = (results = []) => {
     sets: results.map((row) => {
       return {
         setNo: row.set_no,
+        description: row.description,
         reps: row.reps,
         breakTime: row.break_time,
         calories: row.calories,

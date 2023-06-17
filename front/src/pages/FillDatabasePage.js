@@ -18,12 +18,11 @@ const FillDatabasePage = () => {
   const fillDatabase = async () => {
     try {
       setFilling(true);
-      await API.post('/fill-database').then(() => {
-        showSuccess('Database filled!')
-        setTimeout(() => {
-          onAuthChange({ dbFilled: true })
-        }, 1000)
-      })
+      await API.post('/fill-database')
+      showSuccess('Database filled!')
+      setTimeout(() => {
+        onAuthChange({ dbFilled: true })
+      }, 1000)
     } catch (err) {
       showError('Error while filling the database!')
     } finally {

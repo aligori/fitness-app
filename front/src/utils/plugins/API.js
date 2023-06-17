@@ -13,11 +13,12 @@ export const API = {
         "user_id": user?.id
       },
     });
-
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return response.json();
   },
   post: async (uri, payload) => {
-    try {
       const user = JSON.parse(localStorage.getItem('auth'))?.user
 
       const response = await fetch(`${API_URL}${uri}`, {
@@ -29,9 +30,13 @@ export const API = {
         },
         body: JSON.stringify(payload),
       });
+
+    console.log('response', response)
+      if (!response.ok) {
+        const res = await response.json();
+        console.log('res err', res.error)
+        throw new Error(res.error);
+      }
       return response.json();
-    } catch (err) {
-      throw err
-    }
   }
 }

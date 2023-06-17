@@ -133,10 +133,14 @@ app.post('/plans/:id/subscribe', async (req, res) => {
   try {
     const { id: planId  } = req.params;
     const userId = req.headers['user_id'];
+    if (!planId || !userId) {
+      return res.status(400).send({ error: { message: 'Bad Request!'} });
+    }
+
     await services.subscribe(planId, userId)
     res.status(200).send({ message: "Plan subscribed successfully!" });
   } catch (error) {
-    res.status(500).send({ error });
+    res.status(500).send({ error: { message: error.message} });
   }
 });
 
@@ -144,12 +148,36 @@ app.post('/workouts/:id/complete', async (req, res) => {
   try {
     const { id: workoutId  } = req.params;
     const userId = req.headers['user_id'];
+    if (!workoutId || !userId) {
+      return res.status(400).send({ error: 'Bad Request!' });
+    }
+
     await services.completeWorkout(workoutId, userId)
     res.status(200).send({ message: "Workout marked as completed!" });
   } catch (error) {
-    res.status(500).send({ error });
+    res.status(500).send({ error: error.message });
   }
 });
+
+app.get('plan/:planId/workouts/:workoutId/next-workout', async (req, res) => {
+    try {
+      const { workoutId, planId } = req.params;
+
+
+      if (!workoutId || !planId) {
+        return res.status(400).send({ error: 'Bad request!' });
+      }
+
+      const data = await services.getNextWorkoutId(workoutId, planId);
+      res.status(200).send({
+        message: 'Success', data
+      });
+    } catch
+      (err) {
+      res.status(500).send({ error: err});
+    }
+  }
+)
 
 const PORT = process.env.SERVER_PORT || 8080;
 

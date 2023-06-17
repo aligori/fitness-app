@@ -165,13 +165,10 @@ async function fillDatabase() {
     for (let gymGoerId = 1; gymGoerId <= gymGoerIds.length; gymGoerId++ ) {
 
         const subscribedPlans = await db.executeQuery('SELECT p.id FROM subscription AS s INNER JOIN plan AS p ON p.id = s.plan_id WHERE goer_id = ?', [gymGoerId])
-        console.log(subscribedPlans)
 
         for (const plan of subscribedPlans) {
             const planWorkouts = await db.executeQuery('SELECT id FROM workout WHERE plan_id = ?', [plan.id])
-            console.log('plan workouts', planWorkouts)
             const workoutsToSubscribe = getRandomInt(2, planWorkouts.length)
-            console.log('workouts to subscribe', workoutsToSubscribe)
             for (let i = 0; i < workoutsToSubscribe; i++) {
                 const workoutId = planWorkouts[i].id
                 const completedDate = faker.date.past({ years: 1 })
@@ -262,8 +259,16 @@ async function subscribe(planId, userId) {
 }
 
 async function completeWorkout(workoutId, userId) {
-    const query = 'INSERT INTO gym_goer_workout (goer_id, workoutId) VALUES (?, ?)'
+    const results = await db.executeQuery('SELECT * FROM gym_goer_workout WHERE goer_id = ? AND workout_id = ?', [userId, workoutId]);
+    if (results.length)
+        throw new Error('Workout already completed!')
+    const query = 'INSERT INTO gym_goer_workout (goer_id, workout_id) VALUES (?, ?)'
     return await db.executeQuery(query, [userId, workoutId]);
+}
+
+async function getNextWorkoutId(workoutId, planId) {
+    const query = 'SELECT * FROM workout AS w INNER JOIN plan AS p ON w.plan_id = p.id WHERE w.id > ? AND p.id = ? ORDER BY w.id LIMIT 1;'
+    return await db.executeQuery(query, [workoutId, planId]);
 }
 
 export default {
@@ -275,5 +280,6 @@ export default {
     getPlanById,
     getWorkoutById,
     subscribe,
-    completeWorkout
+    completeWorkout,
+    getNextWorkoutId
 }
