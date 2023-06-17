@@ -18,11 +18,12 @@ const FillDatabasePage = () => {
   const fillDatabase = async () => {
     try {
       setFilling(true);
-      await API.post('/fill-database')
-      showSuccess('Database filled!')
-      setTimeout(() => {
-        onAuthChange({ dbFilled: true })
-      }, 1000)
+      await API.post('/fill-database').then(() => {
+        showSuccess('Database filled!')
+        setTimeout(() => {
+          onAuthChange({ dbFilled: true })
+        }, 1000)
+      })
     } catch (err) {
       showError('Error while filling the database!')
     } finally {
@@ -32,7 +33,7 @@ const FillDatabasePage = () => {
 
   return (
     <AuthLayout>
-      <div className="cursor-pointer transform hover:scale-105 text-2xl font-bold text-center text-indigo-500 rounded-lg border shadow-md p-8 w-1/3" onClick={fillDatabase}>
+      <div className={`bg-white text-2xl font-bold text-center text-indigo-500 rounded-lg border shadow-md p-8 w-1/3 ${filling? 'cursor-wait' : 'cursor-pointer transition duration-400 hover:scale-105'}`} onClick={!filling ? fillDatabase : () => {}}>
         {filling ? <div>Initializing <span className="animate-pulse">...</span></div> : 'Initialize Database'}
         <div className="flex justify-center">
           {filling && <div className="py-5">

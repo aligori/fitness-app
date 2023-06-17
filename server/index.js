@@ -16,28 +16,9 @@ app.use(json())
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, User_id");
   next();
 });
-
-// JUST FOR TESTING - NEED TO BE REMOVED
-app.post('/test', async (req, res) => {
-  try {
-    const results = await services.createTest(req.body)
-    res.status(200).send({ message: 'Success' });
-  } catch (error) {
-    res.status(500).send({ error });
-  }
-});
-
-app.get('/test', async (req, res) => {
-  try {
-    const results = await services.getTest()
-    res.status(200).send({ message: 'Fetch success', data: results });
-  } catch (err) {
-    res.status(500).send('Error fetching!');
-  }
-})
 
 app.post('/fill-database', async (req, res) => {
   try {
@@ -55,13 +36,13 @@ app.post('/migrate', async (req, res) => {
     // Call a migrate function that converts rdbms data to nosql data
     // Change to services that use mongo
     services = mongoServices
-    res.status(200).send('Successfully Migrated!');
+    res.status(200).send('Migrate message changed!');
   } catch (err) {
     res.status(500).send('Internal server error!');
   }
 })
 
-app.get('/users', async (req, res, next) => {
+app.get('/users', async (req, res) => {
     try {
       let type = req.query.type;
       if (!type || !['goer', 'influencer'].includes(type)) {
@@ -93,9 +74,30 @@ app.get('/categories', async (req, res) => {
   }
 )
 
-app.get('/plan', async (req, res) => {
+app.get('/categories/:id', async (req, res) => {
     try {
-      const data = await services.getPlan();
+      const id = req.params.id;
+      const data = await services.getCategoryById(id);
+      res.status(200).send({
+        message: 'Success', data
+      });
+    } catch
+      (err) {
+      res.status(500).send({ error: 'Internal server error' });
+    }
+  }
+)
+
+app.get('/plans/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.headers['user_id'];
+
+      if (!id || !userId) {
+        return res.status(400).send({ error: 'Bad request!' });
+      }
+
+      const data = await services.getPlanById(id, userId);
       res.status(200).send({
         message: 'Success', data
       });
@@ -105,6 +107,49 @@ app.get('/plan', async (req, res) => {
     }
   }
 )
+
+app.get('/workouts/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const userId = req.headers['user_id'];
+
+      if (!id || !userId) {
+        return res.status(400).send({ error: 'Bad request!' });
+      }
+
+      const data = await services.getWorkoutById(id, userId);
+      res.status(200).send({
+        message: 'Success', data
+      });
+    } catch
+      (err) {
+      res.status(500).send({ error: err});
+    }
+  }
+)
+
+app.post('/plans/:id/subscribe', async (req, res) => {
+  try {
+    const { id: planId  } = req.params;
+    const userId = req.headers['user_id'];
+    await services.subscribe(planId, userId)
+    res.status(200).send({ message: "Plan subscribed successfully!" });
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
+
+app.post('/workouts/:id/complete', async (req, res) => {
+  try {
+    const { id: workoutId  } = req.params;
+    const userId = req.headers['user_id'];
+    await services.completeWorkout(workoutId, userId)
+    res.status(200).send({ message: "Workout marked as completed!" });
+  } catch (error) {
+    res.status(500).send({ error });
+  }
+});
 
 const PORT = process.env.SERVER_PORT || 8080;
 

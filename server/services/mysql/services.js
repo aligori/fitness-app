@@ -3,21 +3,14 @@ import { faker } from '@faker-js/faker'
 import {getRandomInt} from "../../utils/helpers.js";
 import {defaultCategories} from "../../data/categories.js";
 import {defaultExercises} from "../../data/exercises.js";
+import {categoryMapper} from "../../utils/mappers/category.js";
+import {planMapper} from "../../utils/mappers/plan.js";
+import {workoutMapper} from "../../utils/mappers/workout.js";
 import moment from "moment";
 
-async function createTest(data) {
-    const query = 'INSERT INTO test (firstname, lastname, email) VALUES (?, ?, ?)';
-    const params = [data.firstname, data.lastname, data.email]
-
-    return await db.executeQuery(query, params);
-}
-
-async function getTest() {
-    const query = 'SELECT * FROM test';
-    return await db.executeQuery(query);
-}
-
 async function fillDatabase() {
+    // TODO: Prune database before inserting
+
     // Creating Gym Goer Users
     const gymGoerUsers = Array.from({ length: 100 }, () => ([
         faker.internet.email(),
@@ -71,7 +64,8 @@ async function fillDatabase() {
     let availablePlans = 0;
 
     for (let id = 1; id <= categories.length; id++) {
-        const numberOfPlansInCategory = getRandomInt(3, 15)
+        const numberOfPlansInCategory = 1
+        // const numberOfPlansInCategory = getRandomInt(3, 15)
         availablePlans += numberOfPlansInCategory;
 
         for (let i = 1; i <= numberOfPlansInCategory; i++) {
@@ -154,7 +148,6 @@ async function fillDatabase() {
 
         for (let i = 0; i < plansToSubscribe; i++) {
             // Select a random plan to subscribe to, from the list of available plans
-            // const planId = getRandomInt(1, 10)
             const planId = getRandomInt(1, availablePlans)
             if (subscribedPlanIds.includes(planId)) continue;   // Skip if randomly generated plan already subscribed
 
@@ -165,6 +158,29 @@ async function fillDatabase() {
     }
 
     await db.executeQuery('INSERT INTO subscription (goer_id, plan_id, subscribe_date) VALUES ?', [subscriptions])
+
+    // Complete some workouts
+    const completedWorkouts = []
+
+    for (let gymGoerId = 1; gymGoerId <= gymGoerIds.length; gymGoerId++ ) {
+
+        const subscribedPlans = await db.executeQuery('SELECT p.id FROM subscription AS s INNER JOIN plan AS p ON p.id = s.plan_id WHERE goer_id = ?', [gymGoerId])
+        console.log(subscribedPlans)
+
+        for (const plan of subscribedPlans) {
+            const planWorkouts = await db.executeQuery('SELECT id FROM workout WHERE plan_id = ?', [plan.id])
+            console.log('plan workouts', planWorkouts)
+            const workoutsToSubscribe = getRandomInt(2, planWorkouts.length)
+            console.log('workouts to subscribe', workoutsToSubscribe)
+            for (let i = 0; i < workoutsToSubscribe; i++) {
+                const workoutId = planWorkouts[i].id
+                const completedDate = faker.date.past({ years: 1 })
+                completedWorkouts.push([gymGoerId, workoutId, completedDate])
+            }
+        }
+    }
+
+    await db.executeQuery('INSERT INTO gym_goer_workout (goer_id, workout_id, completed_date) VALUES ?', [completedWorkouts])
 
    // Create friendships between gym_goers
    const friendships = []
@@ -209,9 +225,55 @@ async function getCategories() {
     return await db.executeQuery('SELECT * FROM category');
 }
 
-async function getPlan() {
-    // Use Mapper
-    return await db.executeQuery('SELECT w.plan_id AS plan_id, p.title AS plan_title,w.id AS workout_id, w.title AS workout_title FROM plan AS p inner join workout AS w ON p.id = w.plan_id WHERE p.id = 1');
+async function getCategoryById(id) {
+    const query = 'SELECT c.id as category_id, c.name, c.description as category_description, c.image, ' +
+      'p.id as plan_id, p.title, p.description as plan_description, p.goal, p.duration, p.created_at  ' +
+      'FROM plan as p INNER JOIN category as c ON p.category_id = c.id WHERE c.id = ?;';
+
+    const result = await db.executeQuery(query, [id]);
+    return categoryMapper(result)
 }
 
-export default { createTest, getTest, getGymGoers, getInfluencers, getPlan, getCategories, fillDatabase }
+async function getPlanById(id, userId) {
+    const query = 'SELECT p.id as plan_id, p.title as plan_title, p.description, p.goal, p.duration as plan_duration, p.created_at, p.influencer_id, ' +
+      'w.id as workout_id, w.title as workout_title, w.difficulty, w.duration as workout_duration, w.image, w.scheduled_day, s.subscribe_date ' +
+      'FROM plan as p INNER JOIN workout as w ON p.id = w.plan_id LEFT OUTER JOIN subscription as s on s.plan_id = p.id AND s.goer_id = ? ' +
+      'WHERE p.id = ? ORDER BY w.scheduled_day ASC;'
+    const result = await db.executeQuery(query, [userId, id]);
+    return planMapper(result)
+}
+
+async function getWorkoutById(id, userId) {
+    const query = 'SELECT w.id AS workout_id, w.title, w.difficulty, w.duration, w.scheduled_day, s.set_no, s.reps, ' +
+      's.break_time, s.calories, e.name as exercise_name, e.description, e.image, e.equipment, e.muscle_groups, gw.completed_date FROM workout AS w ' +
+      'INNER JOIN `set` AS s ON w.id = s.workout_id INNER JOIN exercise AS e ON s.exercise_id = e.id LEFT OUTER JOIN gym_goer_workout as gw ' +
+      'ON gw.workout_id = w.id AND gw.goer_id = ? WHERE w.id = ?;'
+    const result = await db.executeQuery(query, [userId, id]);
+    return workoutMapper(result)
+}
+
+async function subscribe(planId, userId) {
+    const results = await db.executeQuery('SELECT * FROM subscription WHERE goer_id = ? AND plan_id = ?', [userId, planId]);
+    if (results.length)
+        throw new Error('Plan already subscribed!')
+
+    const query = 'INSERT INTO subscription (goer_id, plan_id) VALUES (?, ?)'
+    return await db.executeQuery(query, [userId, planId]);
+}
+
+async function completeWorkout(workoutId, userId) {
+    const query = 'INSERT INTO gym_goer_workout (goer_id, workoutId) VALUES (?, ?)'
+    return await db.executeQuery(query, [userId, workoutId]);
+}
+
+export default {
+    getGymGoers,
+    getInfluencers,
+    getCategoryById,
+    getCategories,
+    fillDatabase,
+    getPlanById,
+    getWorkoutById,
+    subscribe,
+    completeWorkout
+}
