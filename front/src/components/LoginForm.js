@@ -17,19 +17,6 @@ const Option = ({ onClick, label, checked }) => {
 const LoginForm = () => {
   const [showSelectStep, setShowSelectStep] = useState(false);
   const [type, setType] = useState('goer');
-  // const [users, setUsers] = useState([{ id: '1', username: 'PrettyGirl23', email: 'hello@example.com' }, {
-  //   id: '1',
-  //   username: 'PrettyGirl23',
-  //   email: 'hello@example.com'
-  // }, { id: '1', username: 'PrettyGirl23', email: 'hello@example.com' }, {
-  //   id: '1',
-  //   username: 'PrettyGirl23',
-  //   email: 'hello@example.com'
-  // }, { id: '2', username: 'PrettyGirl23', email: 'hello@example.com' }, {
-  //   id: '3',
-  //   username: 'PrettyGirl23',
-  //   email: 'hello@example.com'
-  // }])
   const [users, setUsers] = useState([])
   const [selectedUser, setSelectedUser] = useState({});
 

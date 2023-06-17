@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
-import { Routes } from 'react-router';
+import {Navigate, Routes} from 'react-router';
 import FillDatabasePage from "../pages/FillDatabasePage.js";
 import LoginPage from "../pages/LoginPage.js";
 import GuestRoute from "./GuestRoute.js";
@@ -8,6 +8,9 @@ import AuthRoute from "./AuthRoute.js";
 import AuthProvider from "../context/AuthProvider";
 import {Toaster} from "react-hot-toast";
 import Dashboard from "../pages/Dashboard";
+import CategoryPage from "../pages/CategoryPage";
+import PlanPage from "../pages/PlanPage";
+import WorkoutPage from "../pages/WorkoutPage";
 
 const AppRoutes = () => {
   return (
@@ -20,7 +23,11 @@ const AppRoutes = () => {
         </Route>
         <Route element={<AuthRoute />}>
           <Route exact path="/" element={<Dashboard />} />
+          <Route exact path="/categories/:id" element={<CategoryPage />} />
+          <Route exact path="/plans/:id" element={<PlanPage />} />
+          <Route exact path="/plans/:planId/workouts/:workoutId" element={<WorkoutPage />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       </AuthProvider>
       <Toaster />
