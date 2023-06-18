@@ -56,7 +56,7 @@ db.createCollection("user", {
                         },
                         subscriptions: {
                             bsonType: "array",
-                            description: "array holding the name of plans that the user subscribes to",
+                            description: "array holding the _id of plans that the user subscribes to",
                             items: {
                               planId: {
                                 bsonType: "ObjectId",
@@ -147,7 +147,7 @@ db.createCollection("completedWorkouts", {
                     description: "date the workout was completed by the user"
                 },
                 caloriesBurned: {
-                    bsonType: "float",
+                    bsonType: "double",
                     description: "calories burned in the workout -- from workout.caloriesBurned where workout._id = workoutId"
                 },
                 associatedPlanId: {
@@ -158,7 +158,6 @@ db.createCollection("completedWorkouts", {
         }
     }
 })
-
 db.completedWorkouts.createIndex({"goerId":1, "dateCompleted":-1})
 
 db.createCollection("exercise",{
@@ -178,7 +177,7 @@ db.createCollection("exercise",{
                 },
                 image: {
                     bsonType: "string",
-                    description: "path to get to the image",
+                    description: "url of the image",
                     required: true
                 },
                 equipment: {
@@ -187,7 +186,7 @@ db.createCollection("exercise",{
                     required: true
                 },
                 caloriesBurned: {
-                    bsonType: "int",
+                    bsonType: "double",
                     description: "how many calories are burned in one rep of the exercise",
                     required: true
                 },
@@ -332,9 +331,9 @@ db.createCollection("workout",{
                     description: "how long the workout takes to complete in minutes",
                     required: true
                 },
-                image: {      //i think maybe we should get rid of this
+                image: {
                     bsonType: "string",
-                    description: "path to image",
+                    description: "url of image",
                     required: true
                 },
                 scheduledDay: {
@@ -369,7 +368,7 @@ db.createCollection("workout",{
                                 required: true
                             },
                             caloriesBurned: {
-                                bsonType: "int",
+                                bsonType: "double",
                                 description: "calories burned by doing all the reps in the set",
                             },
                             exercise: {
@@ -387,7 +386,7 @@ db.createCollection("workout",{
                                     },
                                     image: {
                                         bsonType: "string",
-                                        description: "path to get to the image",
+                                        description: "url of the image",
                                         required: true
                                     },
                                     equipment: {
@@ -396,7 +395,7 @@ db.createCollection("workout",{
                                         required: true
                                     },
                                     calories: {
-                                        bsonType: "int",
+                                        bsonType: "double",
                                         description: "how many calories are burned in one rep of the exercise",
                                         required: true
                                     },
@@ -436,9 +435,9 @@ db.createCollection("category",{
                 },
                 image: {
                     bsonType: "string",
-                    description: "string containing the path to the image",
+                    description: "url containing image",
                     required: true
-                },
+                }
             }
         }
     }

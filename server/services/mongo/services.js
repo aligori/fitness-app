@@ -14,75 +14,80 @@ async function resetDatabase() {
     await db.collection('category').deleteMany({});
     await db.collection('exercise').deleteMany({});
     await db.collection('plan').deleteMany({});
+    await db.collection('workout').deleteMany({});
 }
+
+export default { resetDatabase }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// //returns array where each object is a gym goer
 // async function getGymGoers() {
 //     const gymGoers = await db.user.find({gymGoer: {$exists: true}}, {'gymGoer': 1, 'username': 1, 'email': 1, 'password':1}).toArray();
 //     return gymGoers;
 // }
 
+// //returns array where each object is a fitness influencer
 // async function getInfluencers() {
 //     const influencers = await db.user.find({fitnessInfluencer: {$exists: true}}, {'fitnessInfluencer': 1, 'username': 1, 'email': 1, 'password':1}).toArray();
 //     return influencers;
 // }
 
+// //returns array where each object is a category
 // async function getCategories() {
 //     const categories = await db.collection("category").find().toArray();
 //     return categories;
 // }
 
-// async function getPlans() {
-//     const plan = await db.collection("plan").find().toArray();
-//     return plans;
+// //returns one category object
+// async function getCategoryById(categoryId){
+//     const categoryVals = await db.category.findOne({_id: categoryId});
+//     return categoryVals;
 // }
 
-// async function getPlansFromCategory(categoryId) {
-//     const plans = await db.category.find(
-//         { _id: categoryId },
-//         { plans: 1 }
-//     );
-//     return db.plan.find({ _id: {$in: plans}}).toArray();
+// //returns one plan object, plan has "workoutsInfo" with necessary info
+// async function getPlanById(planId){
+//     const planVals = await db.plan.findOne({_id: planId});
+//     return planVals;
 // }
 
-// async function getCategory(categoryId) {
-//     const category = db.category.find({_id: categoryId}, {title: 1, description: 1});
-//     const plans = getPlansFromCategory(categoryId);
-//     category.plans = plans;
-//     return category;
-// }
-
-// async function getPlansFromUser(userId) {
-//     const plans = await db.user.findOne(
-//         {_id: userId},
-//         {"gymGoer.subscriptions": 1}
-//     );
-//     return db.plan.find({_id: {$in: plans}}).toArray();
-// }
-
-// async function getWorkoutsFromPlan(planId) {
-//     const workouts = await db.plan.findOne(
-//         {_id: planId},
-//         { workoutIds: 1}
-//     );
-//     return db.workout.find({_id: {$in: workouts}}).toArray();
-// }
-
-// async function getPlan(planId){
-//     const plan = db.plan.findOne({ _id: planId }, { title: 1, description: 1 });
-//     const workouts = getWorkoutsFromPlan(planId);
-//     plan.workouts = workouts;
-//     return plan;
-// }
-
-// //does not need two steps like get plan because "sets" is a property of workout
-// async function getWorkout(workoutId){
+// //returns one workout object (including the embedded sets and exercises)
+// async function getWorkoutById(workoutId){
 //     const workoutVals = await db.workout.findOne({_id: workoutId});
 //     return workoutVals;
 // }
 
-//insert statements
+// async function subscribe(planId, userId){
+//     //get the current date
+//     subscriptionDate = new Date();
+//     //turn the current date and userId into a subscription object
+//     const newSubscription = {subscriberId:userId, subscriptionDate:subscriptionDate}
+//     //update user
+//     await db.collection("user").updateOne(
+//         {_id: userId},
+//         { $addToSet: { "gymGoer.subscriptions": planId } }
+//     );
+//     //update plan
+//     await db.collection("plan").updateOne(
+//         {_id: planId},
+//         {$addToSet: {"plan.subscribers": newSubscription } }
+//     );
+// }
 
+// async function completeWorkout(workoutId, userId) {
+//     //query to find workout.calories and workout.partOf
+//     workoutVals = getWorkoutById(workoutId)
+//     //get the current date
+//     dateCompleted = new Date();
+//     //insert all values into the completedWorkouts collection
+//     db.collection("completedWorkouts").insertOne({goerId: userId, workoutId: workoutId, partOf: workoutVals.partOf, caloriesBurned: workoutVals.caloriesBurned, dateCompleted: dateCompleted})
+// }
 
-export default { resetDatabase }
+// async function getPlansByUser(userId) {
+//     const chosenUser = await db.user.findOne({_id:userId});
+//     planIds = chosenUser.subscriptions;
+//     const plans = await db.collection("plan").find({ _id: { $in: planIds } }).toArray();
+//     return plans;
+// }
+
+// export default {getGymGoers, getInfluencers, getCategories, getCategoryById, getPlanById, getWorkoutById, subscribe, completeWorkout, getPlansByUser, resetDatabase}

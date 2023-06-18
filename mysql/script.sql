@@ -72,7 +72,7 @@ CREATE TABLE workout(
     duration INT, -- number of minutes
     image VARCHAR(2083),
     scheduled_day INT,
-    calories_burned FLOAT,
+    calories_burned FLOAT DEFAULT 0,
     plan_id INT,
     influencer_id INT NOT NULL,
     PRIMARY KEY(id),
@@ -132,23 +132,16 @@ CREATE TABLE follower(
 );
 
 DELIMITER //
-CREATE TRIGGER update_workout_calories_trigger
-    AFTER INSERT ON `set` FOR EACH ROW
-BEGIN
-    UPDATE workout
-    SET calories_burned = calories_burned + NEW.calories
-    WHERE id = NEW.workout_id;
-END //
-DELIMITER ;
 
-DELIMITER //
 CREATE TRIGGER calculate_age_trigger
     BEFORE INSERT ON gym_goer
     FOR EACH ROW
 BEGIN
     SET NEW.age = FLOOR(DATEDIFF(CURDATE(), NEW.birthday) / 365.25);
 END;//
+
 DELIMITER ;
+
 
 DELIMITER //
 CREATE TRIGGER calculate_calories_per_set_trigger
@@ -157,5 +150,16 @@ BEGIN
     DECLARE exercise_calories FLOAT;
     SELECT calories_burned INTO exercise_calories FROM exercise WHERE id = NEW.exercise_id;
     SET NEW.calories = exercise_calories * NEW.reps;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER update_workout_calories_trigger
+    AFTER INSERT ON `set` FOR EACH ROW
+BEGIN
+    UPDATE workout
+    SET calories_burned = calories_burned + NEW.calories
+    WHERE id = NEW.workout_id;
 END //
 DELIMITER ;
