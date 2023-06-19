@@ -342,9 +342,22 @@ db.createCollection("workout",{
                     bsonType: "int",
                     description: "on which day in the plan does this workout fall"
                 },
-                partOf: {
-                    bsonType: "ObjectId",
-                    description: "foreign key referencing the id of the Plan this Workout is a part of"
+                caloriesBurned: {
+                    bsonType: "double",
+                    description: "calories burned in workout"
+                },
+                plan: {
+                    bsonType: "object",
+                    properties: {
+                        _id: {
+                            bsonType: "ObjectId",
+                            description: "_id of the plan the workout is part of"
+                        },
+                        title: {
+                            bsonType: "string",
+                            description: "title of the plan the workout is part of"
+                        }
+                    }
                 },
                 creator:{
                     bsonType: "ObjectId",
