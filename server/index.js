@@ -38,7 +38,7 @@ app.post('/migrate', async (req, res) => {
     await migrateDatabase()
     // Change to services that use mongo
     services = mongoServices
-    res.status(200).send('Migrate message changed!');
+    res.status(200).send('Migrated data to NoSQL successfully!');
   } catch (err) {
     res.status(500).send({error: err.message});
   }
@@ -198,6 +198,25 @@ app.get('plan/:planId/workouts/:workoutId/next-workout', async (req, res) => {
       }
 
       const data = await services.getNextWorkoutId(workoutId, planId);
+      res.status(200).send({
+        message: 'Success', data
+      });
+    } catch
+      (err) {
+      res.status(500).send({ error: err});
+    }
+  }
+)
+
+app.get('/profile-info', async (req, res) => {
+    try {
+      const userId = req.headers['user_id'];
+
+      if (!userId) {
+        return res.status(400).send({ error: 'Bad request!' });
+      }
+
+      const data = await services.getProfileInfo(userId);
       res.status(200).send({
         message: 'Success', data
       });

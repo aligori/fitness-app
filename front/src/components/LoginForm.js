@@ -3,11 +3,12 @@ import DefaultButton from "../core/buttons/DefaultButton.js";
 import {API} from "../utils/plugins/API";
 import {showError} from "../utils/helpers";
 import {AuthContext} from "../context/AuthProvider";
+import {useNavigate} from "react-router";
 
 const Option = ({ onClick, label, checked }) => {
   return (
     <div
-      className={`flex flex-1 mx-2 border rounded items-center justify-center cursor-pointer h-[200px] text-gray-800 font-semibold text-xl transition duration-200 bg-indigo-50 ${checked ? 'border-2 border-indigo-400' : 'hover:bg-indigo-100'}`}
+      className={`flex flex-1 my-1 border py-5 rounded items-center justify-center cursor-pointer text-gray-800 font-semibold transition duration-200 bg-indigo-50 ${checked ? 'border-2 border-indigo-400' : 'hover:bg-indigo-100'}`}
       onClick={onClick}>
       {label}
     </div>
@@ -21,6 +22,7 @@ const LoginForm = () => {
   const [selectedUser, setSelectedUser] = useState({});
 
   const [auth, onAuthChange] = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -70,12 +72,18 @@ const LoginForm = () => {
               <DefaultButton md type="submit" label="Sign in"/>
             </form> :
             <div>
-              <div className="mt-8 flex ">
+              <div className="mt-8 flex flex-col">
                 <Option label="Gym Goer" onClick={() => setType('goer')} checked={type === 'goer'}/>
                 <Option label="Fitness Influencer" onClick={() => setType('influencer')}
                         checked={type === 'influencer'}/>
+                <DefaultButton onClick={fetchUsers} label="Sign in" className="mt-2"/>
+                <span className="text-center uppercase tracking-tight my-3 text-gray-600">OR</span>
+                <div
+                  className={`hover:bg-gray-100 transition duration-300 flex flex-1 my-1 border py-2 text-sm rounded items-center justify-center cursor-pointer text-gray-800 font-semibold transition duration-200`}
+                  onClick={() => navigate('/reports')}>
+                  View Reports
+                </div>
               </div>
-              <DefaultButton onClick={fetchUsers} label="Sign in" className="mt-5"/>
             </div>
         }
       </>

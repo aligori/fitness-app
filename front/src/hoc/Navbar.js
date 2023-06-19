@@ -1,6 +1,6 @@
-import React, {useContext} from 'react';
-import {AuthContext} from "../context/AuthProvider";
+import React from 'react';
 import {useNavigate} from "react-router";
+import Dropdown from "./Dropdown";
 
 const NavItem = ({ title, url }) => {
   let navigate = useNavigate();
@@ -19,11 +19,6 @@ const NavItem = ({ title, url }) => {
 };
 
 const Navbar = () => {
-  const [auth, onAuthChange] = useContext(AuthContext)
-
-  const logOut = () => {
-    onAuthChange({ ...auth, user: undefined })
-  }
 
   return (
     <div className="bg-white flex items-center justify-between border-b shadow-lg py-5 px-5 lg:px-20">
@@ -40,9 +35,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      <div className="flex items-center">
-        <button onClick={logOut} className="text-gray-500 mx-4 font-medium mx-5">Log out</button>
-      </div>
+      <Dropdown />
     </div>
   );
 };

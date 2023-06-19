@@ -5,8 +5,6 @@ import {AuthContext} from "../context/AuthProvider.js";
 export const GuestRoute = () => {
   const [auth] = useContext(AuthContext);
 
-  console.log('GuestRoute auth: ', auth)
-
   if(!auth.dbFilled) {
     return <Navigate to="/fill-database" />;
   }

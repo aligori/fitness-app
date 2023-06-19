@@ -7,6 +7,7 @@ import {categoryMapper} from "../../utils/mappers/category.js";
 import {planMapper} from "../../utils/mappers/plan.js";
 import {workoutMapper} from "../../utils/mappers/workout.js";
 import moment from "moment";
+import {profileMapper} from "../../utils/mappers/profile.js";
 
 async function resetDatabase() {
     await db.executeQuery('DELETE FROM user')
@@ -293,10 +294,27 @@ async function getBestPlanByGoer(goerId){
 
 //does not include date range
 async function getBestPlanByCategory(categoryId){
-    //return "made it to the query";
      const query = 'select plan.title, count(goer_id) as total_subscribers from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id where category_id = ? group by plan.id order by total_subscribers desc limit 1;'
      return await db.executeQuery(query, [categoryId])
 }
+
+async function getProfileInfo(userId) {
+    const [gymGoerInfo] = await db.executeQuery('SELECT * FROM gym_goer AS gg INNER JOIN user AS u ON u.id = gg.goer_id WHERE u.id = ?', [userId])
+
+    const subscriptionsQuery = 'SELECT p.id, p.title, p.goal, p.duration FROM subscription AS s INNER JOIN plan AS p ' +
+      'ON p.id = s.plan_id WHERE s.goer_id = ?'
+    const subscriptions = await db.executeQuery(subscriptionsQuery, [userId])
+
+    const friendsQuery = 'SELECT u.id, u.username FROM user AS u WHERE u.id IN (' +
+      'SELECT IF(goer_a_id = ?, goer_b_id, goer_a_id) AS friend_id FROM friendship WHERE goer_a_id = ? OR goer_b_id = ?);'
+    const friends = await db.executeQuery(friendsQuery, [userId, userId, userId])
+
+    const followingQuery = 'SELECT u.id, u.username FROM follower AS f INNER JOIN fitness_influencer AS i ON ' +
+      'i.influencer_id = f.influencer_id INNER JOIN user as u ON u.id = i.influencer_id WHERE goer_id = ?'
+    const following = await db.executeQuery(followingQuery, [userId])
+    return profileMapper(gymGoerInfo, friends, following, subscriptions)
+}
+
 
 export default {
     getGymGoers,
@@ -310,5 +328,6 @@ export default {
     completeWorkout,
     getNextWorkoutId,
     getBestPlanByGoer,
-    getBestPlanByCategory
+    getBestPlanByCategory,
+    getProfileInfo
 }

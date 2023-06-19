@@ -183,7 +183,7 @@ async function migrateWorkouts() {
       workouts.map(async (workout) => {
           const exerciseSets = await mysqlDb.executeQuery('SELECT * FROM `set` AS s INNER JOIN exercise AS e ON s.exercise_id = e.id WHERE s.workout_id = ?', [workout.id])
 
-          return {
+          const workoutDoc = {
               _id: workout.id,
               title: workout.title,
               difficulty: workout.difficulty,
@@ -207,6 +207,16 @@ async function migrateWorkouts() {
                   }
               })
           }
+
+          if (workout.plan_id) {
+              const [row] = await mysqlDb.executeQuery('SELECT title FROM plan WHERE id = ?', [workout.plan_id]);
+
+              workoutDoc.plan = {
+                  _id: workout.plan_id,
+                  title: row.title,
+              }
+          }
+          return workoutDoc
       }));
 
     const result =  await db.collection('workout').insertMany(workoutDocuments);
