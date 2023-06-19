@@ -15,6 +15,8 @@ async function resetDatabase() {
     await db.collection('exercise').deleteMany({});
     await db.collection('plan').deleteMany({});
     await db.collection('workout').deleteMany({});
+    await db.collection('subscription').deleteMany({});
+    await db.collection('completedWorkout').deleteMany({});
 }
 
 export default { resetDatabase }
