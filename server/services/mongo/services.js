@@ -15,8 +15,6 @@ async function resetDatabase() {
     await db.collection('exercise').deleteMany({});
     await db.collection('plan').deleteMany({});
     await db.collection('workout').deleteMany({});
-    await db.collection('subscription').deleteMany({});
-    await db.collection('completedWorkout').deleteMany({});
 }
 
 export default { resetDatabase }
@@ -59,30 +57,38 @@ export default { resetDatabase }
 //     return workoutVals;
 // }
 
-// async function subscribe(planId, userId){
-//     //get the current date
-//     subscriptionDate = new Date();
-//     //turn the current date and userId into a subscription object
-//     const newSubscription = {subscriberId:userId, subscriptionDate:subscriptionDate}
-//     //update user
-//     await db.collection("user").updateOne(
-//         {_id: userId},
-//         { $addToSet: { "gymGoer.subscriptions": planId } }
-//     );
-//     //update plan
-//     await db.collection("plan").updateOne(
-//         {_id: planId},
-//         {$addToSet: {"plan.subscribers": newSubscription } }
-//     );
+// async function subscribe(planId, goerId){
+//     //check subscriptions to make sure the current combination doesn't already exist
+//     existingRecord = await db.subscription.findOne({planId:planId,goerId:goerId});
+//     //existingRecordInUser = await db.user.findOne({_id:goerId,gymGoer.subscriptions.planId:planId}) I don't know how to check for this
+//     if(existingRecord){
+//         return error;
+//     } else {
+//         //get the current date
+//         subscriptionDate = new Date();
+//         //update subscription
+//         await db.collection("subscription").insertOne({planId:planId,goerId:goerId,subscriptionDate:subscriptionDate});
+//         //update goer's subscribe list
+//         planObject = await db.subscription.findOne({_id:planId})
+//         await db.collection("user").updateOne(
+//             {_id:goerId},
+//             {$addToSet: {"gymGoer.subscriptions": {_id:planId, title:planObject.title, goal:planObject.goal, duration:planObject.duration}}}
+//         );
+//     }
 // }
 
-// async function completeWorkout(workoutId, userId) {
-//     //query to find workout.calories and workout.partOf
-//     workoutVals = getWorkoutById(workoutId)
-//     //get the current date
-//     dateCompleted = new Date();
-//     //insert all values into the completedWorkouts collection
-//     db.collection("completedWorkouts").insertOne({goerId: userId, workoutId: workoutId, partOf: workoutVals.partOf, caloriesBurned: workoutVals.caloriesBurned, dateCompleted: dateCompleted})
+// async function completeWorkout(workoutId, goerId) {
+//     //check completedWorkout to make sure the current combination doesn't already exist
+//     existingRecord = await db.completedWorkouts.findOne({workoutId: workoutId, goerId: goerId});
+//     if(existingRecord){
+//         return error;
+//     } else {
+//         //get current date to put in as date completed
+//         dateCompleted = new Date();
+//         //insert into collection
+//         await db.collection("completedWorkouts").insertOne({goerId:goerId, workoutId:workoutId, dateCompleted:dateCompleted});
+//         return "Workout complete!";        
+//     }
 // }
 
 // async function getPlansByUser(userId) {
