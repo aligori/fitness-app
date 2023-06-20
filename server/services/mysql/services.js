@@ -291,14 +291,14 @@ async function getNextWorkoutId(workoutId, planId) {
 // Report 1
 //does not include date range
 async function getBestPlanByGoer(goerId){
-    const query = 'select plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id where gym_goer_workout.goer_id = ? group by plan.id order by total_calories desc limit 1;'
+    const query = 'select plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= DATE_SUB(NOW(), INTERVAL 30 DAY) group by plan.id order by total_calories desc limit 1;'
     return await db.executeQuery(query, [goerId]);
 }
 
 // Report 2
 //does not include date range
 async function getBestPlanByCategory(categoryId){
-     const query = 'select plan.title, count(goer_id) as total_subscribers from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id where category_id = ? group by plan.id order by total_subscribers desc limit 1;'
+     const query = 'select plan.title, count(goer_id) as total_subscribers from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id where category_id = ? and subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 30 DAY) group by plan.id order by total_subscribers desc limit 1;'
      return await db.executeQuery(query, [categoryId])
 }
 
