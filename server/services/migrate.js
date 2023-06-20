@@ -1,6 +1,19 @@
 import mongoServices from './mongo/services.js'
 import mysqlDb from './mysql/db.service.js'
 import {db} from "./mongo/db.service.js";
+import {ObjectId} from "mongodb";
+
+let userIdMapper = {}
+let planIdMapper = {}
+let categoryIdMapper = {}
+let exerciseIdMapper = {}
+let workoutIdMapper = {}
+
+async function initializeIdMappers() {
+    const categories = await mysqlDb.executeQuery('SELECT * FROM category');
+    categoryIdMapper = categories.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+
+}
 
 async function migrateGymGoers() {
     const gymGoers = await mysqlDb.executeQuery('SELECT * FROM user AS u INNER JOIN gym_goer AS gg ON u.id = gg.goer_id');
@@ -101,7 +114,7 @@ async function migrateUsers(){
 
 async function migrateCategories(){
     const categories = await mysqlDb.executeQuery('SELECT * FROM category;');
-    const categoryDocs = categories.map(({id, ...rest}) => { return { _id: id, ...rest }})
+    const categoryDocs = categories.map(({id, ...rest}) => { return { _id: categoryIdMapper[id], ...rest }})
 
     const result =  await db.collection('category').insertMany(categoryDocs);
 
@@ -150,7 +163,7 @@ async function migratePlans() {
                 lastName: row.last_name
             },
             category: {
-                _id: row.category_id,
+                _id: categoryIdMapper[row.category_id],
                 name: row.category_name
             },
             workouts: workouts.map(({id, scheduled_day, ...rest}) => { return { _id: id, scheduledDay: scheduled_day, ...rest}}),
@@ -249,11 +262,14 @@ async function migrateCompletedWorkouts() {
 
 export async function migrateDatabase(){
     await mongoServices.resetDatabase()
-    await migrateUsers()
+
+    // Krijo mappers per gjithe id qe ke ne sql ne ObjectId dhe perdori tek funksionet me poshte
+    await initializeIdMappers()
+    // await migrateUsers()
     await migrateCategories()
-    await migrateExercises()
+    // await migrateExercises()
     await migratePlans()
-    await migrateSubscriptions()
-    await migrateWorkouts()
-    await migrateCompletedWorkouts()
+    // await migrateSubscriptions()
+    // await migrateWorkouts()
+    // await migrateCompletedWorkouts()
 }

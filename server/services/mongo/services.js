@@ -2,6 +2,7 @@ import {db} from './db.service.js'
 import {categoryPlansMapper} from "../../utils/mappers/nosql/categoryPlans.js";
 import {planMapper} from "../../utils/mappers/nosql/plan.js";
 import {workoutMapper} from "../../utils/mappers/nosql/workout.js";
+import {ObjectId} from "mongodb";
 
 async function resetDatabase() {
   await db.collection('user').deleteMany({});
@@ -45,13 +46,13 @@ async function getCategories() {
 }
 
 async function getCategoryPlans(categoryId) {
-  const result = await db.collection('plan').find({ "category._id": +categoryId }).toArray(); // Index is used
+  const result = await db.collection('plan').find({ "category._id": new ObjectId(categoryId) }).toArray(); // Index is used
   return categoryPlansMapper(result);
 }
 
 async function getPlanById(planId, userId) {
   const result = await db.collection('plan').aggregate([
-    { $match: { _id: +planId } },
+    { $match: { _id: parseInt(planId) } },
     {
       $lookup:
         {
@@ -62,7 +63,7 @@ async function getPlanById(planId, userId) {
               $match:
                 {
                   $expr:
-                    { $and: [{ $eq: ["$planId", "$$plan_id"] }, { $eq: ["$goerId", +userId] }] }
+                    { $and: [{ $eq: ["$planId", "$$plan_id"] }, { $eq: ["$goerId", parseInt(userId)] }] }
                 }
             },
           ],
@@ -106,14 +107,15 @@ async function subscribe(planId, goerId) {
 
   if (existingRecord) throw new Error('Plan already subscribed!');
 
-  const subscription = { planId: +planId, goerId: +goerId, subscriptionDate: new Date() }
+  const subscription = { planId: parseInt(planId), goerId: parseInt(goerId), subscriptionDate: new Date() }
   await db.collection("subscription").insertOne(subscription);
 
   // Update goer's subscriptions list
   const planObject = await db.collection("plan").findOne({ _id: +planId });
+  console.log('plan obj', planObject)
 
   await db.collection("user").updateOne(
-    { _id: +goerId },
+    { _id: parseInt(goerId) },
     {
       $addToSet: {
         "gymGoer.subscriptions": {
