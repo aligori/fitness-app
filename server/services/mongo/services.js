@@ -51,8 +51,11 @@ async function getCategoryPlans(categoryId) {
 }
 
 async function getPlanById(planId, userId) {
+  const planObjId = new ObjectId(planId)
+  const userObjId = new ObjectId(userId)
+
   const result = await db.collection('plan').aggregate([
-    { $match: { _id: parseInt(planId) } },
+    { $match: { _id: planObjId } },
     {
       $lookup:
         {
@@ -63,7 +66,7 @@ async function getPlanById(planId, userId) {
               $match:
                 {
                   $expr:
-                    { $and: [{ $eq: ["$planId", "$$plan_id"] }, { $eq: ["$goerId", parseInt(userId)] }] }
+                    { $and: [{ $eq: ["$planId", "$$plan_id"] }, { $eq: ["$goerId", userObjId] }] }
                 }
             },
           ],
@@ -77,8 +80,11 @@ async function getPlanById(planId, userId) {
 }
 
 async function getWorkoutById(workoutId, userId) {
+  const workoutObjId = new ObjectId(workoutId)
+  const userObjId = new ObjectId(userId)
+
   const result = await db.collection('workout').aggregate([
-    { $match: { _id: +workoutId } },
+    { $match: { _id: workoutObjId } },
     {
       $lookup:
         {
@@ -89,7 +95,7 @@ async function getWorkoutById(workoutId, userId) {
               $match:
                 {
                   $expr:
-                    { $and: [{ $eq: ["$workoutId", "$$workout_id"] }, { $eq: ["$goerId", +userId] }] }
+                    { $and: [{ $eq: ["$workoutId", "$$workout_id"] }, { $eq: ["$goerId", userObjId] }] }
                 }
             },
           ],
@@ -103,23 +109,24 @@ async function getWorkoutById(workoutId, userId) {
 
 async function subscribe(planId, goerId) {
   // Check subscriptions to make sure the current combination doesn't already exist
-  const existingRecord = await db.collection('subscription').findOne({ planId: +planId, goerId: +goerId });
+  const planObjId = new ObjectId(planId)
+  const goerObjId = new ObjectId(goerId)
+  const existingRecord = await db.collection('subscription').findOne({ planId: planObjId, goerId: goerObjId });
 
   if (existingRecord) throw new Error('Plan already subscribed!');
 
-  const subscription = { planId: parseInt(planId), goerId: parseInt(goerId), subscriptionDate: new Date() }
+  const subscription = { planId: planObjId, goerId: goerObjId, subscriptionDate: new Date() }
   await db.collection("subscription").insertOne(subscription);
 
   // Update goer's subscriptions list
-  const planObject = await db.collection("plan").findOne({ _id: +planId });
-  console.log('plan obj', planObject)
+  const planObject = await db.collection("plan").findOne({ _id: planObjId });
 
   await db.collection("user").updateOne(
-    { _id: parseInt(goerId) },
+    { _id: goerObjId },
     {
       $addToSet: {
         "gymGoer.subscriptions": {
-          _id: +planId,
+          _id: planObjId,
           title: planObject.title,
           goal: planObject.goal,
           duration: planObject.duration
@@ -131,10 +138,13 @@ async function subscribe(planId, goerId) {
 
 async function completeWorkout(workoutId, goerId) {
   // Check completedWorkout to make sure the current combination doesn't already exist
-  const existingRecord = await db.collection('completedWorkouts').findOne({ workoutId: +workoutId, goerId: +goerId });
+  const workoutObjId = new ObjectId(workoutId)
+  const goerObjId = new ObjectId(goerId)
+
+  const existingRecord = await db.collection('completedWorkouts').findOne({ workoutId: workoutObjId, goerId: goerObjId });
   if (existingRecord) throw new Error('Workout already completed!');
 
-  const completion = { goerId: +goerId, workoutId: +workoutId, dateCompleted: new Date() }
+  const completion = { goerId: goerObjId, workoutId: workoutObjId, dateCompleted: new Date() }
   await db.collection("completedWorkouts").insertOne(completion);
 }
 

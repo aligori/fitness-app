@@ -13,6 +13,17 @@ async function initializeIdMappers() {
     const categories = await mysqlDb.executeQuery('SELECT * FROM category');
     categoryIdMapper = categories.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
 
+    const plans = await mysqlDb.executeQuery('SELECT * FROM plan');
+    planIdMapper = plans.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+
+    const workouts = await mysqlDb.executeQuery('SELECT * FROM workout');
+    workoutIdMapper = workouts.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+
+    const users = await mysqlDb.executeQuery('SELECT * FROM user');
+    userIdMapper = users.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+
+    const exercises = await mysqlDb.executeQuery('SELECT * FROM exercise');
+    exerciseIdMapper = exercises.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
 }
 
 async function migrateGymGoers() {
@@ -35,24 +46,25 @@ async function migrateGymGoers() {
         }
     });
 
-    return await Promise.all(gymGoerDocuments.map(async (user) => {
+    return await Promise.all(gymGoerDocuments.map(async ({_id, ...user}) => {
         const subscriptionsQuery = 'SELECT p.id, p.title, p.goal, p.duration FROM subscription AS s INNER JOIN plan AS p ' +
           'ON p.id = s.plan_id WHERE s.goer_id = ?'
-        const subscriptions = await mysqlDb.executeQuery(subscriptionsQuery, [user._id])
+        const subscriptions = await mysqlDb.executeQuery(subscriptionsQuery, [_id])
 
         const friendsQuery = 'SELECT u.id, u.username FROM user AS u WHERE u.id IN (' +
           'SELECT IF(goer_a_id = ?, goer_b_id, goer_a_id) AS friend_id FROM friendship WHERE goer_a_id = ? OR goer_b_id = ?);'
-        const friends = await mysqlDb.executeQuery(friendsQuery, [user._id, user._id, user._id])
+        const friends = await mysqlDb.executeQuery(friendsQuery, [_id, _id, _id])
 
         const followingQuery = 'SELECT u.id, u.username FROM follower AS f INNER JOIN fitness_influencer AS i ON ' +
           'i.influencer_id = f.influencer_id INNER JOIN user as u ON u.id = i.influencer_id WHERE goer_id = ?'
-        const following = await mysqlDb.executeQuery(followingQuery, [user._id])
+        const following = await mysqlDb.executeQuery(followingQuery, [_id])
 
         return {
+            _id: userIdMapper[_id],
             ... user,
             subscriptions: subscriptions.map(row => {
                 return {
-                    _id: row.id,
+                    _id: planIdMapper[row.id],
                     title: row.title,
                     duration: row.duration,
                     goal: row.goal
@@ -60,13 +72,13 @@ async function migrateGymGoers() {
             }),
             friends: friends.map(friend => {
                 return {
-                    _id: friend.id,
+                    _id: userIdMapper[friend.id],
                     username: friend.username
                 }
             }),
             following: following.map(influencer => {
                 return {
-                    _id: influencer.id,
+                    _id: userIdMapper[influencer.id],
                     username: influencer.username
                 }
             })
@@ -93,9 +105,10 @@ async function migrateInfluencers() {
         }
     });
 
-    return await Promise.all(influencerDocuments.map(async (user) => {
-        const createdPlans = await mysqlDb.executeQuery('SELECT id FROM plan WHERE influencer_id = ?', [user._id])
+    return await Promise.all(influencerDocuments.map(async ({_id, ...user}) => {
+        const createdPlans = await mysqlDb.executeQuery('SELECT id FROM plan WHERE influencer_id = ?', [_id])
         return {
+            _id: userIdMapper[_id],
             ... user,
             createdPlans: createdPlans.map(plan => plan.id),
         }
@@ -127,7 +140,7 @@ async function migrateExercises(){
     const exercises = await mysqlDb.executeQuery('SELECT * FROM exercise;');
     const exerciseDocs = exercises.map(({id, calories_burned, muscle_groups, ...rest}) => {
         return {
-            _id: id,
+            _id: exerciseIdMapper[id],
             caloriesBurned: calories_burned,
             muscleGroups: muscle_groups,
             ...rest
@@ -145,12 +158,13 @@ async function migratePlans() {
     const plans = await mysqlDb.executeQuery('SELECT p.id, p.title, p.description as plan_desc, p.goal, p.duration, p.created_at, ' +
       'p.image, f.influencer_id, f.first_name, f.last_name, c.id as category_id, c.name as category_name FROM plan AS p ' +
       'INNER JOIN fitness_influencer AS f ON f.influencer_id = p.influencer_id INNER JOIN category AS c ON c.id = p.category_id;');
+
     const planDocuments = await Promise.all(
       plans.map(async (row) => {
         const workouts = await mysqlDb.executeQuery('SELECT id, title, difficulty, duration, scheduled_day FROM workout WHERE plan_id = ?', [row.id])
 
         return {
-            _id: row.id,
+            _id: planIdMapper[row.id],
             title: row.title,
             description: row.plan_desc,
             goal: row.goal,
@@ -158,7 +172,7 @@ async function migratePlans() {
             createdAt: row.created_at,
             image: row.image,
             createdBy: {
-                _id: row.influencer_id,
+                _id: userIdMapper[row.influencer_id],
                 firstName: row.first_name,
                 lastName: row.last_name
             },
@@ -166,7 +180,12 @@ async function migratePlans() {
                 _id: categoryIdMapper[row.category_id],
                 name: row.category_name
             },
-            workouts: workouts.map(({id, scheduled_day, ...rest}) => { return { _id: id, scheduledDay: scheduled_day, ...rest}}),
+            workouts: workouts.map(({id, scheduled_day, ...rest}) => {
+                return {
+                    _id: workoutIdMapper[id],
+                    scheduledDay: scheduled_day,
+                    ...rest}
+            }),
         }
     }));
 
@@ -181,8 +200,8 @@ async function migrateSubscriptions() {
 
     const result =  await db.collection('subscription').insertMany(subscriptions.map((s) => {
         return {
-           planId: s.plan_id,
-           goerId: s.goer_id,
+           planId: planIdMapper[s.plan_id],
+           goerId: userIdMapper[s.goer_id],
            subscribeDate: s.subscribe_date,
         }
     }));
@@ -200,7 +219,7 @@ async function migrateWorkouts() {
           const exerciseSets = await mysqlDb.executeQuery('SELECT * FROM `set` AS s INNER JOIN exercise AS e ON s.exercise_id = e.id WHERE s.workout_id = ?', [workout.id])
 
           const workoutDoc = {
-              _id: workout.id,
+              _id: workoutIdMapper[workout.id],
               title: workout.title,
               difficulty: workout.difficulty,
               duration: workout.duration,
@@ -228,7 +247,7 @@ async function migrateWorkouts() {
               const [row] = await mysqlDb.executeQuery('SELECT title FROM plan WHERE id = ?', [workout.plan_id]);
 
               workoutDoc.plan = {
-                  _id: workout.plan_id,
+                  _id: planIdMapper[workout.plan_id],
                   title: row.title,
               }
           }
@@ -247,8 +266,8 @@ async function migrateCompletedWorkouts() {
 
     const result =  await db.collection('completedWorkout').insertMany(completions.map((c) => {
         return {
-            workoutId: c.workout_id,
-            goerId: c.goer_id,
+            workoutId: workoutIdMapper[c.workout_id],
+            goerId: userIdMapper[c.goer_id],
             dateCompleted: c.completed_date,
         }
     }));
@@ -262,14 +281,13 @@ async function migrateCompletedWorkouts() {
 
 export async function migrateDatabase(){
     await mongoServices.resetDatabase()
-
-    // Krijo mappers per gjithe id qe ke ne sql ne ObjectId dhe perdori tek funksionet me poshte
     await initializeIdMappers()
-    // await migrateUsers()
+
+    await migrateUsers()
     await migrateCategories()
-    // await migrateExercises()
+    await migrateExercises()
     await migratePlans()
-    // await migrateSubscriptions()
-    // await migrateWorkouts()
-    // await migrateCompletedWorkouts()
+    await migrateSubscriptions()
+    await migrateWorkouts()
+    await migrateCompletedWorkouts()
 }
