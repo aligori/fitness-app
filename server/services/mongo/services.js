@@ -115,7 +115,7 @@ async function subscribe(planId, goerId) {
 
   if (existingRecord) throw new Error('Plan already subscribed!');
 
-  const subscription = { planId: planObjId, goerId: goerObjId, subscriptionDate: new Date() }
+  const subscription = { planId: planObjId, goerId: goerObjId, subscribeDate: new Date() }
   await db.collection("subscription").insertOne(subscription);
 
   // Update goer's subscriptions list
@@ -141,11 +141,11 @@ async function completeWorkout(workoutId, goerId) {
   const workoutObjId = new ObjectId(workoutId)
   const goerObjId = new ObjectId(goerId)
 
-  const existingRecord = await db.collection('completedWorkouts').findOne({ workoutId: workoutObjId, goerId: goerObjId });
+  const existingRecord = await db.collection('completedWorkout').findOne({ workoutId: workoutObjId, goerId: goerObjId });
   if (existingRecord) throw new Error('Workout already completed!');
 
-  const completion = { goerId: goerObjId, workoutId: workoutObjId, dateCompleted: new Date() }
-  await db.collection("completedWorkouts").insertOne(completion);
+  const completion = { workoutId: workoutObjId, goerId: goerObjId, dateCompleted: new Date() }
+  await db.collection("completedWorkout").insertOne(completion);
 }
 
 // Report 1
@@ -154,7 +154,9 @@ async function getBestPlanByGoer(goerId) {}
 // Report 2
 async function getBestPlanByCategory(categoryId) {}
 
-async function getProfileInfo(userId) {}
+async function getProfileInfo(userId) {
+  return await db.collection("user").findOne({ _id: new ObjectId(userId)});
+}
 
 export default {
   resetDatabase,

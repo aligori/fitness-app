@@ -38,7 +38,7 @@ app.post('/migrate', async (req, res) => {
     await migrateDatabase()
     // Change to services that use mongo
     services = mongoServices
-    res.status(200).send('Migrated data to NoSQL successfully!');
+    res.status(200).send({ message: 'Success', data: 'Migrated data to NoSQL successfully!' });
   } catch (err) {
     res.status(500).send({error: err.message});
   }
@@ -50,7 +50,6 @@ app.get('/users', async (req, res) => {
       if (!type || !['goer', 'influencer'].includes(type)) {
         return res.status(400).send({ error: 'Bad request!' });
       }
-      console.log('here')
       const data = type === 'goer' ? await services.getGymGoers() : await services.getInfluencers()
       res.status(200).send({ message: 'Success', data });
     } catch

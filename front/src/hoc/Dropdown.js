@@ -8,6 +8,7 @@ import Modal from "../core/modals/Modal";
 const Dropdown = () => {
   const [openModal, setOpenModal] = useState(false);
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [auth, onAuthChange] = useContext(AuthContext)
   const navigate = useNavigate()
 
@@ -17,10 +18,14 @@ const Dropdown = () => {
 
   const migrate = async () => {
     try {
+      setLoading(true)
       await API.post('/migrate')
       showSuccess('Migrated Successfully!')
+      setOpenModal(false)
+      setLoading(false)
+      logOut()
     } catch (err) {
-      showError(err.message)
+      showError('Error while migrating')
     }
   }
 
@@ -60,7 +65,10 @@ const Dropdown = () => {
               Profile
             </span>
             <span
-              onClick={() => setOpenModal(prev => !prev)}
+              onClick={() => {
+                setShow(prev => !prev)
+                setOpenModal(prev => !prev)
+              }}
               className="text-red-600 block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-red-700">
               Migrate to NoSQL
             </span>
@@ -77,8 +85,10 @@ const Dropdown = () => {
           <Modal
             setOpenModal={setOpenModal}
             onConfirm={migrate}
+            showLoader={loading}
           >
-            Are you sure that you want to migrate to NoSql?
+            Are you sure that you want to migrate to NoSql? <br/>
+            You cannot undo this action!
           </Modal>
         )
       }

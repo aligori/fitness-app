@@ -10,13 +10,13 @@ const Modal = ({
                         onCancel,
                         disableSubmitButton = false,
                         isInsideModal = false,
+                        showLoader,
                       }) => {
 
   const confirm = () => {
     if (onConfirm) {
       onConfirm();
     }
-    setOpenModal(false);
   };
 
   const cancel = () => {
@@ -47,7 +47,7 @@ const Modal = ({
           </span>
         )}
         <div
-          className={`inline-block self-center align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-92 sm:w-full`}>
+          className={`inline-block self-center align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle max-w-92`}>
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -59,9 +59,10 @@ const Modal = ({
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 flex">
-            <DefaultButton bgColor="bg-gray-100" textColor="text-gray-700" label="Back" onClick={cancel} />
+          <div className="bg-gray-50 px-4 py-3 sm:px-6 flex justify-end">
+            <DefaultButton disabled={showLoader} bgColor="bg-gray-50 hover:bg-gray-100" textColor="text-gray-700" label="Back" onClick={cancel} />
             <DefaultButton
+              isLoading={showLoader}
               disabled={disableSubmitButton}
               label="Confirm"
               onClick={confirm}

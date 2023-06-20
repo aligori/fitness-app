@@ -13,6 +13,7 @@ const DefaultButton = ({
                          xs = false,
                          sm = false,
                          width = 'flex w-full',
+                         isLoading,
                          ...props
                        }) => {
   let sizingClasses = 'py-2 px-4 text-sm';
@@ -41,6 +42,14 @@ const DefaultButton = ({
   return (
     <div {...props}>
       <button onClick={onClick} className={className} disabled={disabled}>
+        {isLoading && (
+          <div className="mr-1">
+            <div
+              style={{ borderTopColor: 'transparent' }}
+              className="w-4 h-4 border-2 border-white border-dotted rounded-full animate-spin"
+            />
+          </div>
+        )}
         {label}
       </button>
     </div>
