@@ -51,7 +51,7 @@ db.createCollection("user", {
                                 bsonType: "object",
                                 properties: {
                                     _id: {
-                                        bsonType: "ObjectId",
+                                        bsonType: "objectId",
                                         description: "friend's _id"
                                     },
                                     username: {
@@ -68,7 +68,7 @@ db.createCollection("user", {
                                 bsonType: "object",
                                 properties: {
                                     _id: {
-                                        bsonType: "ObjectId",
+                                        bsonType: "objectId",
                                         description: "_id of the plan"
                                     },
                                     title: {
@@ -93,7 +93,7 @@ db.createCollection("user", {
                                 bsonType: "object",
                                 properties: {
                                     _id: {
-                                        bsonType: "ObjectId",
+                                        bsonType: "objectId",
                                         description: "_id of the influencer"
                                     },
                                     username: {
@@ -133,10 +133,8 @@ db.createCollection("user", {
                             bsonType: "array",
                             description: "array holding id's for plans created by the influencer",
                             items: {
-                                planId: {
-                                  bsonType: "ObjectId",
-                                  description: "_id of plan created by influencer"
-                                }  
+                                bsonType: "objectId",
+                                description: "_id of plan created by influencer"
                             }
                         }
                     }
@@ -153,11 +151,11 @@ db.createCollection("completedWorkouts", {
             bsonType: "object",
             properties: {
                 goerId: {
-                    bsonType: "ObjectId",
+                    bsonType: "objectId",
                     description: "_id of the user who completed the workout"
                 },
                 workoutId: {
-                    bsonType: "ObjectId",
+                    bsonType: "objectId",
                     description: "_id of the workout the user completed"
                 },
                 dateCompleted: {
@@ -176,11 +174,11 @@ db.createCollection("subscription", {
             bsonType: "object",
             properties: {
                 goerId: {
-                    bsonType: "ObjectId",
+                    bsonType: "objectId",
                     description: "user who has subscribed"
                 },
                 planId: {
-                    bsonType: "ObjectId",
+                    bsonType: "objectId",
                     description: "plan the user subscribed to"
                 },
                 subscriptionDate: {
@@ -256,10 +254,10 @@ db.createCollection("plan", {
                     bsonType: "array",
                     description: "list of workouts in the plan",
                     items: {
-                        bsonType: "Object",
+                        bsonType: "object",
                         properties: {
                             _id: {
-                                bsonType: "ObjectId",
+                                bsonType: "objectId",
                                 description: "_id of workout in plan"
                             },
                             title: {
@@ -285,7 +283,7 @@ db.createCollection("plan", {
                     bsonType: "object",
                     properties: {
                         _id: {
-                            bsonType: "ObjectId",
+                            bsonType: "objectId",
                             description: "_id for the creator of the plan"
                         },
                         firstName: {
@@ -302,7 +300,7 @@ db.createCollection("plan", {
                     bsonType: "object",
                     properties: {
                         _id: {
-                          bsonType: "ObjectId",
+                          bsonType: "objectId",
                           description: "_id of the category the plan is in"
                         },
                         name: {
@@ -350,7 +348,7 @@ db.createCollection("workout",{
                     bsonType: "object",
                     properties: {
                         _id: {
-                            bsonType: "ObjectId",
+                            bsonType: "objectId",
                             description: "_id of the plan the workout is part of"
                         },
                         title: {
@@ -360,14 +358,14 @@ db.createCollection("workout",{
                     }
                 },
                 creator:{
-                    bsonType: "ObjectId",
+                    bsonType: "objectId",
                     description: "foreign key referencing the id of the fitness influencer who created this workout"
                 },
                 sets: {
                     bsonType: "array",
                     description: "array of sets within workout",
                     items: {
-                        bsonType: "Object",
+                        bsonType: "object",
                         properties: {
                             setNo: {
                                 bsonType: "int",
