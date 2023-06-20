@@ -1,17 +1,19 @@
--- select plan.title, sum(calories) as total_calories
---     from completes join workout on completes.workout_id = workout.id
---     join plan on workout.plan_id = plan.id
---     where completes.goer_id = 1244323942308
---         and completes.date in --date range
---     group by plan.id
---     order by total_calories desc
---     limit 1;
+-- select plan.title, sum(calories_burned) as total_calories 
+-- from gym_goer_workout 
+--     join workout on gym_goer_workout.workout_id = workout.id 
+--     join plan on workout.plan_id = plan.id 
+-- where gym_goer_workout.goer_id = ? 
+-- and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) 
+-- group by plan.id 
+-- order by total_calories 
+-- desc limit 1;
 
--- select plan.title, count(goer_id) as total_subscribers
---     from subscription join plan on subscription.plan_id = plan.id
---     join category on plan.category_id = category.id
---     where category = "leg days"
---         and subscription.date in --date range
---     group by plan.id
---     order by total_subscribers desc
---     limit 1;
+-- select plan.title, count(goer_id) as total_subscribers 
+-- from subscription 
+--     join plan on subscription.plan_id = plan.id 
+--     join category on plan.category_id = category.id 
+-- where category_id = ? 
+--     and subscription.subscribe_date >= date_sub(now(), interval 30 day) 
+-- group by plan.id 
+-- order by total_subscribers desc 
+-- limit 1;
