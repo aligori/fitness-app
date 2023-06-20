@@ -149,10 +149,118 @@ async function completeWorkout(workoutId, goerId) {
 }
 
 // Report 1
-async function getBestPlanByGoer(goerId) {}
+async function getBestPlanByGoer(goerId) {
+  const goerObjId = new ObjectId(goerId)
+  const pipeline = [
+    // Match completed workouts for the given goerId
+    {
+      $match: {
+        goerId: goerObjId,//userIdMapper[goerId],
+        dateCompleted: {
+          $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Filter for last 30 days
+        }
+      }
+    },
+    // Lookup workout details based on workoutId
+    {
+      $lookup: {
+        from: "workout",
+        localField: "workoutId",
+        foreignField: "_id",
+        as: "workout"
+      }
+    },
+    // Unwind the workout array
+    {
+      $unwind: "$workout"
+    },
+    // Group by planTitle and calculate the sum of caloriesBurned
+    {
+      $group: {
+        _id: "$workout.plan.title",
+        total_calories: { $sum: "$workout.caloriesBurned" }
+      }
+    },
+    // Sort by totalCalories in descending order
+    {
+      $sort: {
+        total_calories: -1
+      }
+    },
+    // Limit to the first document (highest totalCalories)
+    {
+      $limit: 1
+    },
+    // Project the fields for the output
+    {
+      $project: {
+        _id: 0,
+        title: "$_id",
+        total_calories: 1
+      }
+    }
+  ];
+
+
+  const result = await db.collection("completedWorkout").aggregate(pipeline).toArray();
+
+  return result[0] ? result[0] : null;
+}
+
+
+
 
 // Report 2
-async function getBestPlanByCategory(categoryId) {}
+async function getBestPlanByCategory(categoryId) {
+  const categoryObjId = new ObjectId(categoryId)
+  const pipeline = [
+    {
+      $match: {
+        "category._id": categoryObjId
+      }
+    },
+    {
+      $lookup: {
+        from: "subscription",
+        localField: "_id",
+        foreignField: "planId",
+        as: "subscriptions"
+      }
+    },
+    {
+      $addFields: {
+        total_subscribers: {
+          $size: {
+            $filter: {
+              input: "$subscriptions",
+              as: "sub",
+              cond: {
+                $gte: ["$$sub.subscribeDate", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $sort: {
+        total_subscribers: -1
+      }
+    },
+    {
+      $limit: 1
+    },
+    {
+      $project: {
+        _id: 0,
+        total_subscribers: 1,
+        title: "$title"       
+      }
+    }
+  ];
+  const result = await db.collection("plan").aggregate(pipeline).toArray();
+  return result[0] ? result[0]:null;
+}
 
 async function getProfileInfo(userId) {
   return await db.collection("user").findOne({ _id: new ObjectId(userId)});
