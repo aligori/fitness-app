@@ -11,13 +11,14 @@ export const workoutMapper = (results = []) => {
     sets: results.map((row) => {
       return {
         setNo: row.set_no,
-        description: row.description,
+        description: row.exercise_desc,
         reps: row.reps,
         breakTime: row.break_time,
         calories: row.calories,
         exerciseName: row.exercise_name,
         equipment: row.equipment,
-        muscleGroups: row.muscle_groups
+        muscleGroups: row.muscle_groups,
+        image: row.exercise_image
       }
     })
   }

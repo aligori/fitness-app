@@ -3,8 +3,10 @@ import {AuthContext} from "../context/AuthProvider";
 import {API} from "../utils/plugins/API";
 import {showError, showSuccess} from "../utils/helpers";
 import {useNavigate} from "react-router";
+import Modal from "../core/modals/Modal";
 
 const Dropdown = () => {
+  const [openModal, setOpenModal] = useState(false);
   const [show, setShow] = useState(false);
   const [auth, onAuthChange] = useContext(AuthContext)
   const navigate = useNavigate()
@@ -54,22 +56,32 @@ const Dropdown = () => {
           <div className="py-1" role="none">
             <span
               onClick={() => navigate('/profile')}
-              className="block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-red-700">
+              className="block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100">
               Profile
             </span>
             <span
-              onClick={migrate}
+              onClick={() => setOpenModal(prev => !prev)}
               className="text-red-600 block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-red-700">
               Migrate to NoSQL
             </span>
             <span
               onClick={logOut}
-              className="block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100 hover:text-red-700">
+              className="block px-4 font-medium py-2 text-sm cursor-pointer hover:bg-gray-100">
               Log Out
             </span>
           </div>
         </div>
       )}
+      {
+        openModal && (
+          <Modal
+            setOpenModal={setOpenModal}
+            onConfirm={migrate}
+          >
+            Are you sure that you want to migrate to NoSql?
+          </Modal>
+        )
+      }
     </div>
   );
 };

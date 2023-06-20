@@ -50,12 +50,9 @@ app.get('/users', async (req, res) => {
       if (!type || !['goer', 'influencer'].includes(type)) {
         return res.status(400).send({ error: 'Bad request!' });
       }
+      console.log('here')
       const data = type === 'goer' ? await services.getGymGoers() : await services.getInfluencers()
-      res.status(200).send({
-        message: 'Success', data: data.map(user => {
-          return { id: user.id, username: user.username, email: user.email, avatar: user.avatar }
-        })
-      });
+      res.status(200).send({ message: 'Success', data });
     } catch
       (err) {
       res.status(500).send({ error: 'Internal server error' });
@@ -93,7 +90,7 @@ app.get('/categories', async (req, res) => {
 app.get('/categories/:id', async (req, res) => {
     try {
       const id = req.params.id;
-      const data = await services.getCategoryById(id);
+      const data = await services.getCategoryPlans(id);
       res.status(200).send({
         message: 'Success', data
       });

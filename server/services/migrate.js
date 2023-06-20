@@ -129,7 +129,9 @@ async function migrateExercises(){
 }
 
 async function migratePlans() {
-    const plans = await mysqlDb.executeQuery('SELECT * FROM plan AS p INNER JOIN fitness_influencer AS f ON f.influencer_id = p.influencer_id INNER JOIN category AS c ON c.id = p.category_id;');
+    const plans = await mysqlDb.executeQuery('SELECT p.id, p.title, p.description as plan_desc, p.goal, p.duration, p.created_at, ' +
+      'p.image, f.influencer_id, f.first_name, f.last_name, c.id as category_id, c.name as category_name FROM plan AS p ' +
+      'INNER JOIN fitness_influencer AS f ON f.influencer_id = p.influencer_id INNER JOIN category AS c ON c.id = p.category_id;');
     const planDocuments = await Promise.all(
       plans.map(async (row) => {
         const workouts = await mysqlDb.executeQuery('SELECT id, title, difficulty, duration, scheduled_day FROM workout WHERE plan_id = ?', [row.id])
@@ -137,10 +139,11 @@ async function migratePlans() {
         return {
             _id: row.id,
             title: row.title,
-            description: row.description,
+            description: row.plan_desc,
             goal: row.goal,
             duration: row.duration,
             createdAt: row.created_at,
+            image: row.image,
             createdBy: {
                 _id: row.influencer_id,
                 firstName: row.first_name,
@@ -148,7 +151,7 @@ async function migratePlans() {
             },
             category: {
                 _id: row.category_id,
-                name: row.name // This represents category.name
+                name: row.category_name
             },
             workouts: workouts.map(({id, scheduled_day, ...rest}) => { return { _id: id, scheduledDay: scheduled_day, ...rest}}),
         }

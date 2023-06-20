@@ -1,101 +1,160 @@
 import {db} from './db.service.js'
-
-async function createTest(data){
-    await db.collection('testCollection').insertOne({ firstName: data.firstname, lastName: data.lastname, email: data.email });
-    return 'Creating with MONGO'
-}
-
-async function getTest(){
-    return await db.collection('testCollection').find().toArray();
-}
+import {categoryPlansMapper} from "../../utils/mappers/nosql/categoryPlans.js";
+import {planMapper} from "../../utils/mappers/nosql/plan.js";
+import {workoutMapper} from "../../utils/mappers/nosql/workout.js";
 
 async function resetDatabase() {
-    await db.collection('user').deleteMany({});
-    await db.collection('category').deleteMany({});
-    await db.collection('exercise').deleteMany({});
-    await db.collection('plan').deleteMany({});
-    await db.collection('workout').deleteMany({});
+  await db.collection('user').deleteMany({});
+  await db.collection('category').deleteMany({});
+  await db.collection('exercise').deleteMany({});
+  await db.collection('plan').deleteMany({});
+  await db.collection('workout').deleteMany({});
+  await db.collection('subscription').deleteMany({});
+  await db.collection('completedWorkout').deleteMany({});
 }
 
-export default { resetDatabase }
+const mapIdCallback = ({_id, ...rest}) => { return { id: _id, ...rest}}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+async function getGymGoers() {
+  const result = await db.collection('user').find({ gymGoer: { $exists: true } }, {
+    projection: {
+      '_id': 1,
+      'email': 1,
+      'username': 1,
+      'avatar': 1
+    }
+  }).toArray()
+  return result.map(mapIdCallback);
+}
 
-// //returns array where each object is a gym goer
-// async function getGymGoers() {
-//     const gymGoers = await db.user.find({gymGoer: {$exists: true}}, {'gymGoer': 1, 'username': 1, 'email': 1, 'password':1}).toArray();
-//     return gymGoers;
-// }
+async function getInfluencers() {
+  const result = await db.collection('user').find({ fitnessInfluencer: { $exists: true } }, {
+    projection: {
+      '_id': 1,
+      'username': 1,
+      'email': 1,
+      'avatar': 1
+    }
+  }).toArray();
+  return result.map(mapIdCallback);
+}
 
-// //returns array where each object is a fitness influencer
-// async function getInfluencers() {
-//     const influencers = await db.user.find({fitnessInfluencer: {$exists: true}}, {'fitnessInfluencer': 1, 'username': 1, 'email': 1, 'password':1}).toArray();
-//     return influencers;
-// }
+async function getCategories() {
+  const result = await db.collection("category").find().toArray();
+  return result.map(mapIdCallback)
+}
 
-// //returns array where each object is a category
-// async function getCategories() {
-//     const categories = await db.collection("category").find().toArray();
-//     return categories;
-// }
+async function getCategoryPlans(categoryId) {
+  const result = await db.collection('plan').find({ "category._id": +categoryId }).toArray(); // Index is used
+  return categoryPlansMapper(result);
+}
 
-// //returns one category object
-// async function getCategoryById(categoryId){
-//     const categoryVals = await db.category.findOne({_id: categoryId});
-//     return categoryVals;
-// }
+async function getPlanById(planId, userId) {
+  const result = await db.collection('plan').aggregate([
+    { $match: { _id: +planId } },
+    {
+      $lookup:
+        {
+          from: "subscription",
+          let: { plan_id: "$_id" },
+          pipeline: [
+            {
+              $match:
+                {
+                  $expr:
+                    { $and: [{ $eq: ["$planId", "$$plan_id"] }, { $eq: ["$goerId", +userId] }] }
+                }
+            },
+          ],
+          as: "subscription"
+        }
+    },
+    { $unwind: { path: "$subscription", preserveNullAndEmptyArrays: true } }
+  ]).toArray();
 
-// //returns one plan object, plan has "workoutsInfo" with necessary info
-// async function getPlanById(planId){
-//     const planVals = await db.plan.findOne({_id: planId});
-//     return planVals;
-// }
+  return planMapper(result)
+}
 
-// //returns one workout object (including the embedded sets and exercises)
-// async function getWorkoutById(workoutId){
-//     const workoutVals = await db.workout.findOne({_id: workoutId});
-//     return workoutVals;
-// }
+async function getWorkoutById(workoutId, userId) {
+  const result = await db.collection('workout').aggregate([
+    { $match: { _id: +workoutId } },
+    {
+      $lookup:
+        {
+          from: "completedWorkout",
+          let: { workout_id: "$_id" },
+          pipeline: [
+            {
+              $match:
+                {
+                  $expr:
+                    { $and: [{ $eq: ["$workoutId", "$$workout_id"] }, { $eq: ["$goerId", +userId] }] }
+                }
+            },
+          ],
+          as: "completion"
+        }
+    },
+    { $unwind: { path: "$completion", preserveNullAndEmptyArrays: true } }
+  ]).toArray();
+  return workoutMapper(result);
+}
 
-// async function subscribe(planId, goerId){
-//     //check subscriptions to make sure the current combination doesn't already exist
-//     existingRecord = await db.subscription.findOne({planId:planId,goerId:goerId});
-//     //existingRecordInUser = await db.user.findOne({_id:goerId,gymGoer.subscriptions.planId:planId}) I don't know how to check for this
-//     if(existingRecord){
-//         return error;
-//     } else {
-//         //get the current date
-//         subscriptionDate = new Date();
-//         //update subscription
-//         await db.collection("subscription").insertOne({planId:planId,goerId:goerId,subscriptionDate:subscriptionDate});
-//         //update goer's subscribe list
-//         planObject = await db.subscription.findOne({_id:planId})
-//         await db.collection("user").updateOne(
-//             {_id:goerId},
-//             {$addToSet: {"gymGoer.subscriptions": {_id:planId, title:planObject.title, goal:planObject.goal, duration:planObject.duration}}}
-//         );
-//     }
-// }
+async function subscribe(planId, goerId) {
+  // Check subscriptions to make sure the current combination doesn't already exist
+  const existingRecord = await db.collection('subscription').findOne({ planId: +planId, goerId: +goerId });
 
-// async function completeWorkout(workoutId, goerId) {
-//     //check completedWorkout to make sure the current combination doesn't already exist
-//     existingRecord = await db.completedWorkouts.findOne({workoutId: workoutId, goerId: goerId});
-//     if(existingRecord){
-//         return error;
-//     } else {
-//         //get current date to put in as date completed
-//         dateCompleted = new Date();
-//         //insert into collection
-//         await db.collection("completedWorkouts").insertOne({goerId:goerId, workoutId:workoutId, dateCompleted:dateCompleted});
-//         return "Workout complete!";        
-//     }
-// }
+  if (existingRecord) throw new Error('Plan already subscribed!');
 
-// async function getPlansByUser(userId) {
-//     const chosenUser = await db.user.findOne({_id:userId});
-//     planIds = chosenUser.subscriptions;
-//     const plans = await db.collection("plan").find({ _id: { $in: planIds } }).toArray();
-//     return plans;
-// }
+  const subscription = { planId: +planId, goerId: +goerId, subscriptionDate: new Date() }
+  await db.collection("subscription").insertOne(subscription);
 
-// export default {getGymGoers, getInfluencers, getCategories, getCategoryById, getPlanById, getWorkoutById, subscribe, completeWorkout, getPlansByUser, resetDatabase}
+  // Update goer's subscriptions list
+  const planObject = await db.collection("plan").findOne({ _id: +planId });
+
+  await db.collection("user").updateOne(
+    { _id: +goerId },
+    {
+      $addToSet: {
+        "gymGoer.subscriptions": {
+          _id: +planId,
+          title: planObject.title,
+          goal: planObject.goal,
+          duration: planObject.duration
+        }
+      }
+    }
+  );
+}
+
+async function completeWorkout(workoutId, goerId) {
+  // Check completedWorkout to make sure the current combination doesn't already exist
+  const existingRecord = await db.collection('completedWorkouts').findOne({ workoutId: +workoutId, goerId: +goerId });
+  if (existingRecord) throw new Error('Workout already completed!');
+
+  const completion = { goerId: +goerId, workoutId: +workoutId, dateCompleted: new Date() }
+  await db.collection("completedWorkouts").insertOne(completion);
+}
+
+// Report 1
+async function getBestPlanByGoer(goerId) {}
+
+// Report 2
+async function getBestPlanByCategory(categoryId) {}
+
+async function getProfileInfo(userId) {}
+
+export default {
+  resetDatabase,
+  getGymGoers,
+  getInfluencers,
+  getCategories,
+  getCategoryPlans,
+  getPlanById,
+  getWorkoutById,
+  subscribe,
+  completeWorkout,
+  getBestPlanByGoer,
+  getBestPlanByCategory,
+  getProfileInfo,
+}

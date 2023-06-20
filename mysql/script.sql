@@ -56,6 +56,7 @@ CREATE TABLE plan(
     title VARCHAR(100),
     description TEXT,
     goal VARCHAR(100),
+    image VARCHAR(2083),
     duration INT, -- number of days
     created_at DATE,
     influencer_id int not null,

@@ -3,11 +3,11 @@ import { faker } from '@faker-js/faker'
 import {getRandomInt} from "../../utils/helpers.js";
 import {defaultCategories} from "../../data/categories.js";
 import {defaultExercises} from "../../data/exercises.js";
-import {categoryMapper} from "../../utils/mappers/category.js";
 import {planMapper} from "../../utils/mappers/plan.js";
 import {workoutMapper} from "../../utils/mappers/workout.js";
 import moment from "moment";
 import {profileMapper} from "../../utils/mappers/profile.js";
+import {categoryPlansMapper} from "../../utils/mappers/categoryPlans.js";
 
 async function resetDatabase() {
     await db.executeQuery('DELETE FROM user')
@@ -92,13 +92,14 @@ async function fillDatabase() {
                 description: faker.lorem.paragraph(),
                 goal: faker.lorem.words(),
                 duration: planDuration,
+                image: faker.image.url(),
                 createdAt: faker.date.recent(),
                 influencerId,
                 categoryId: id,
             }
 
-            const planQuery = 'INSERT INTO plan (title, description, goal, duration, created_at, influencer_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
-            const params = [plan.title, plan.description, plan.goal, plan.duration, plan.createdAt, plan.influencerId, plan.categoryId]
+            const planQuery = 'INSERT INTO plan (title, description, goal, duration, created_at, image, influencer_id, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            const params = [plan.title, plan.description, plan.goal, plan.duration, plan.createdAt, plan.image, plan.influencerId, plan.categoryId]
             await db.executeQuery(planQuery, params)
 
             const [records] = await db.executeQuery('SELECT LAST_INSERT_ID() as planId From plan;')
@@ -224,12 +225,12 @@ async function fillDatabase() {
 }
 
 async function getGymGoers() {
-    const query = 'SELECT * FROM user as u inner join gym_goer as gg on u.id = gg.goer_id';
+    const query = 'SELECT u.id, u.username, u.email, u.avatar FROM user as u inner join gym_goer as gg on u.id = gg.goer_id';
     return await db.executeQuery(query);
 }
 
 async function getInfluencers() {
-    const query = 'SELECT * FROM user as u inner join fitness_influencer as f on u.id = f.influencer_id';
+    const query = 'SELECT u.id, u.username, u.email, u.avatar FROM user as u inner join fitness_influencer as f on u.id = f.influencer_id';
     return await db.executeQuery(query);
 }
 
@@ -237,19 +238,20 @@ async function getCategories() {
     return await db.executeQuery('SELECT * FROM category');
 }
 
-async function getCategoryById(id) {
-    const query = 'SELECT c.id as category_id, c.name, c.description as category_description, c.image, ' +
+async function getCategoryPlans(id) {
+    const query = 'SELECT c.id as category_id, c.name, c.image, ' +
       'p.id as plan_id, p.title, p.description as plan_description, p.goal, p.duration, p.created_at  ' +
       'FROM plan as p INNER JOIN category as c ON p.category_id = c.id WHERE c.id = ?;';
 
     const result = await db.executeQuery(query, [id]);
-    return categoryMapper(result)
+    return categoryPlansMapper(result)
 }
 
 async function getPlanById(id, userId) {
     const query = 'SELECT p.id as plan_id, p.title as plan_title, p.description, p.goal, p.duration as plan_duration, p.created_at, p.influencer_id, ' +
-      'w.id as workout_id, w.title as workout_title, w.difficulty, w.duration as workout_duration, w.image, w.scheduled_day, s.subscribe_date ' +
-      'FROM plan as p INNER JOIN workout as w ON p.id = w.plan_id LEFT OUTER JOIN subscription as s on s.plan_id = p.id AND s.goer_id = ? ' +
+      'w.id as workout_id, w.title as workout_title, w.difficulty, w.duration as workout_duration, w.image, w.scheduled_day, s.subscribe_date, ' +
+      'CONCAT(f.first_name, \' \', f.last_name) as influencer_name FROM plan as p INNER JOIN workout as w ON p.id = w.plan_id ' +
+      'INNER JOIN fitness_influencer AS f ON f.influencer_id = p.influencer_id LEFT OUTER JOIN subscription as s on s.plan_id = p.id AND s.goer_id = ? ' +
       'WHERE p.id = ? ORDER BY w.scheduled_day ASC;'
     const result = await db.executeQuery(query, [userId, id]);
     return planMapper(result)
@@ -257,7 +259,7 @@ async function getPlanById(id, userId) {
 
 async function getWorkoutById(id, userId) {
     const query = 'SELECT w.id AS workout_id, w.title, w.difficulty, w.duration, w.scheduled_day, s.set_no, s.reps, ' +
-      's.break_time, s.calories, e.name as exercise_name, e.description, e.image, e.equipment, e.muscle_groups, gw.completed_date FROM workout AS w ' +
+      's.break_time, s.calories, e.name as exercise_name, e.description as exercise_desc, e.image as exercise_image, e.equipment, e.muscle_groups, gw.completed_date FROM workout AS w ' +
       'INNER JOIN `set` AS s ON w.id = s.workout_id INNER JOIN exercise AS e ON s.exercise_id = e.id LEFT OUTER JOIN gym_goer_workout as gw ' +
       'ON gw.workout_id = w.id AND gw.goer_id = ? WHERE w.id = ?;'
     const result = await db.executeQuery(query, [userId, id]);
@@ -286,12 +288,14 @@ async function getNextWorkoutId(workoutId, planId) {
     return await db.executeQuery(query, [workoutId, planId]);
 }
 
+// Report 1
 //does not include date range
 async function getBestPlanByGoer(goerId){
     const query = 'select plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id where gym_goer_workout.goer_id = ? group by plan.id order by total_calories desc limit 1;'
     return await db.executeQuery(query, [goerId]);
 }
 
+// Report 2
 //does not include date range
 async function getBestPlanByCategory(categoryId){
      const query = 'select plan.title, count(goer_id) as total_subscribers from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id where category_id = ? group by plan.id order by total_subscribers desc limit 1;'
@@ -319,7 +323,7 @@ async function getProfileInfo(userId) {
 export default {
     getGymGoers,
     getInfluencers,
-    getCategoryById,
+    getCategoryPlans,
     getCategories,
     fillDatabase,
     getPlanById,

@@ -66,7 +66,7 @@ const ProfilePage = () => {
                           onClick={() =>  navigate(`/plans/${plan._id}`)}
                           className="cursor-pointer group transform hover:translate-x-0.5 flex items-center bg-white rounded-lg shadow my-2 py-5 px-8">
                           <div className="flex-1">
-                            <span className="text-sm text-gray-600 font-semibold">Plan Title</span>
+                            <span className="text-sm text-gray-600 font-semibold">{plan?.title}</span>
                             <div className="flex items-center mt-1">
                               <div className="flex items-center text-gray-400 text-sm">
                                 <i className="fa-solid fa-calendar-days mr-1" aria-hidden="true"/>
