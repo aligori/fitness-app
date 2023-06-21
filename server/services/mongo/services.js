@@ -148,69 +148,75 @@ async function completeWorkout(workoutId, goerId) {
   await db.collection("completedWorkout").insertOne(completion);
 }
 
-// Report 1
+// Report 2
 async function getBestPlanByGoer(goerId) {
-  const goerObjId = new ObjectId(goerId)
-  const pipeline = [
-    // Match completed workouts for the given goerId
-    {
-      $match: {
-        goerId: goerObjId,//userIdMapper[goerId],
-        dateCompleted: {
-          $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Filter for last 30 days
+    const goerObjId = new ObjectId(goerId)
+    const pipeline = [
+      {
+        $match: {
+          goerId: goerObjId,
+          dateCompleted: {
+            $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "workout",
+          localField: "workoutId",
+          foreignField: "_id",
+          as: "workout"
+        }
+      },
+      {
+        $unwind: "$workout"
+      },
+       {
+        $lookup: {
+          from: "user",
+          localField: "goerId",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      {
+        $unwind: "$user"
+      },
+      {
+        $group: {
+          _id: "$workout.plan.title",
+          total_calories: { $sum: "$workout.caloriesBurned" },
+          username: { $first: "$user.username" }
+        }
+      },
+      {
+        $sort: {
+          total_calories: -1
+        }
+      },
+      {
+        $limit: 1
+      },
+      {
+        $project: {
+          _id: 0,
+          title: "$_id",
+          total_calories: 1,
+          username: 1
         }
       }
-    },
-    // Lookup workout details based on workoutId
-    {
-      $lookup: {
-        from: "workout",
-        localField: "workoutId",
-        foreignField: "_id",
-        as: "workout"
-      }
-    },
-    // Unwind the workout array
-    {
-      $unwind: "$workout"
-    },
-    // Group by planTitle and calculate the sum of caloriesBurned
-    {
-      $group: {
-        _id: "$workout.plan.title",
-        total_calories: { $sum: "$workout.caloriesBurned" }
-      }
-    },
-    // Sort by totalCalories in descending order
-    {
-      $sort: {
-        total_calories: -1
-      }
-    },
-    // Limit to the first document (highest totalCalories)
-    {
-      $limit: 1
-    },
-    // Project the fields for the output
-    {
-      $project: {
-        _id: 0,
-        title: "$_id",
-        total_calories: 1
-      }
-    }
-  ];
-
-
-  const result = await db.collection("completedWorkout").aggregate(pipeline).toArray();
-
-  return result[0] ? result[0] : null;
+    ];
+  
+  
+    const result = await db.collection("completedWorkout").aggregate(pipeline).toArray();
+  
+    return result[0] ? result[0] : null;
 }
 
 
 
 
-// Report 2
+// Report 1
 async function getBestPlanByCategory(categoryId) {
   const categoryObjId = new ObjectId(categoryId)
   const pipeline = [
