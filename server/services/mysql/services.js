@@ -289,17 +289,15 @@ async function getNextWorkoutId(workoutId, planId) {
 }
 
 // Report 1
-//does not include date range
-async function getBestPlanByGoer(goerId){
-    const query = 'select plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) group by plan.id order by total_calories desc limit 1;'
-    return await db.executeQuery(query, [goerId]);
+async function getBestPlanByCategory(categoryId){
+     const query = 'select plan.title, category.name, count(goer_id) as total_subscribers, fitness_influencer.first_name, fitness_influencer.last_name from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id join fitness_influencer on plan.influencer_id = fitness_influencer.influencer_id where category.id = ? and subscription.subscribe_date >= date_sub(now(), interval 30 day) group by plan.id order by total_subscribers desc limit 1;'
+     return await db.executeQuery(query, [categoryId])
 }
 
 // Report 2
-//does not include date range
-async function getBestPlanByCategory(categoryId){
-     const query = 'select plan.title, count(goer_id) as total_subscribers from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id where category_id = ? and subscription.subscribe_date >= date_sub(now(), interval 30 day) group by plan.id order by total_subscribers desc limit 1;'
-     return await db.executeQuery(query, [categoryId])
+async function getBestPlanByGoer(goerId){
+    const query = 'select user.username, plan.title, sum(calories_burned) as total_calories from gym_goer_workout join gym_goer on gym_goer_workout.goer_id = gym_goer.goer_id join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id join user on gym_goer.goer_id = user.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) group by plan.id order by total_calories desc limit 1;'
+    return await db.executeQuery(query, [goerId]);
 }
 
 async function getProfileInfo(userId) {
