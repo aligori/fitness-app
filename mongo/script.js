@@ -1,4 +1,4 @@
-const db = new Mongo().getDB("fitness-app-mongo-db");
+db = new Mongo().getDB("fitness-app-mongo-db");
 
 db.createCollection("user", {
     validator: {
@@ -25,11 +25,11 @@ db.createCollection("user", {
                     bsonType: "object",
                     properties: {
                         weight: {
-                            bsonType: "int",
+                            bsonType: "double",
                             description: "gym goer's weight"
                         },
                         height: {
-                            bsonType: "int",
+                            bsonType: "double",
                             description: "gym goer's height"
                         },
                         birthday: {
@@ -42,6 +42,7 @@ db.createCollection("user", {
                         },
                         membershipType: {
                             bsonType: "string",
+                            enum: ["free", "basic", "silver", "gold"],
                             description: "gym goer's selected membership type"
                         },
                         friends: {
@@ -75,13 +76,13 @@ db.createCollection("user", {
                                         bsonType: "string",
                                         description: "tiel of the plan"
                                     },
-                                    goal: {
-                                        bsonType: "string",
-                                        description: "goal of the plan"
-                                    },
                                     duration: {
                                         bsonType: "int",
                                         description: "number of weeks plan takes to complete"
+                                    },
+                                    goal: {
+                                        bsonType: "string",
+                                        description: "goal of the plan"
                                     }
                                 }
                             }
@@ -103,11 +104,12 @@ db.createCollection("user", {
                                 }
                             }
                         }
-                    }
+                    },
+                    required: false
                 },
         
                 fitnessInfluencer: {
-                    bsonType: "objectId",
+                    bsonType: "object",
                     properties: {
                         firstName: {
                             bsonType: "string",
@@ -137,7 +139,8 @@ db.createCollection("user", {
                                 description: "_id of plan created by influencer"
                             }
                         }
-                    }
+                    },
+                    required: false
                 }
             }
         }
@@ -376,10 +379,10 @@ db.createCollection("workout",{
                                 description: "the number of reps of the exercise to be done"
                             },
                             breakTime: {
-                                bsonType: "int",
+                                bsonType: "string",
                                 description: "the amount of time to rest between sets"
                             },
-                            caloriesBurned: {
+                            calories: {
                                 bsonType: "double",
                                 description: "calories burned by doing all the reps in the set"
                             },
