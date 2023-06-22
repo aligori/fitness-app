@@ -290,7 +290,12 @@ async function getNextWorkoutId(workoutId, planId) {
 
 // Report 1
 async function getBestPlanByCategory(categoryId){
-     const query = 'select plan.title, category.name, count(goer_id) as total_subscribers, fitness_influencer.first_name, fitness_influencer.last_name from subscription join plan on subscription.plan_id = plan.id join category on plan.category_id = category.id join fitness_influencer on plan.influencer_id = fitness_influencer.influencer_id where category.id = ? and subscription.subscribe_date >= date_sub(now(), interval 30 day) group by plan.id order by total_subscribers desc limit 1;'
+     const query = 'SELECT plan.title, category.name AS categoryName, fitness_influencer.first_name AS firstName, fitness_influencer.last_name AS lastName, ' +
+       'COUNT(subscription.goer_id) AS totalSubscribers FROM subscription JOIN plan ON subscription.plan_id = plan.id JOIN category ON plan.category_id = category.id ' +
+       'JOIN fitness_influencer ON plan.influencer_id = fitness_influencer.influencer_id ' +
+       'WHERE plan.category_id = ? AND subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) ' +
+       'GROUP BY plan.id ORDER BY total_subscribers DESC LIMIT 1;'
+
      return await db.executeQuery(query, [categoryId])
 }
 
