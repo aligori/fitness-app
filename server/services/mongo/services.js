@@ -219,6 +219,7 @@ async function getBestPlanByGoer(goerId) {
 // Report 1
 async function getBestPlanByCategory(categoryId) {
   const categoryObjId = new ObjectId(categoryId)
+
   const pipeline = [
     {
       $match: {
@@ -226,44 +227,56 @@ async function getBestPlanByCategory(categoryId) {
       }
     },
     {
+      $project: {
+        _id: 1,
+        title: 1,
+        "category.name": 1,
+        "createdBy.firstName": 1,
+        "createdBy.lastName": 1
+      }
+    },
+    {
       $lookup: {
         from: "subscription",
-        localField: "_id",
-        foreignField: "planId",
+        let: { plan_id: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$planId", "$$plan_id"] },
+              subscriptionDate: {
+                $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+              }
+            }
+          }
+        ],
         as: "subscriptions"
       }
     },
     {
       $addFields: {
-        total_subscribers: {
-          $size: {
-            $filter: {
-              input: "$subscriptions",
-              as: "sub",
-              cond: {
-                $gte: ["$$sub.subscribeDate", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)]
-              }
-            }
-          }
-        }
+        totalSubscribers: { $size: "$subscriptions" }
       }
     },
     {
       $sort: {
-        total_subscribers: -1
+        totalSubscribers: -1
       }
     },
     {
-      $limit: 1
+      $limit: 3
     },
     {
       $project: {
         _id: 0,
-        total_subscribers: 1,
-        title: "$title"       
+        totalSubscribers: 1,
+        planTitle: "$title",
+        categoryName: "$category.name",
+        firstName: "$createdBy.firstName",
+        lastName: "$createdBy.lastName"
       }
     }
   ];
+
   const result = await db.collection("plan").aggregate(pipeline).toArray();
   return result[0] ? result[0]:null;
 }
