@@ -294,7 +294,7 @@ async function getBestPlanByCategory(categoryId){
        'COUNT(subscription.goer_id) AS totalSubscribers FROM subscription JOIN plan ON subscription.plan_id = plan.id JOIN category ON plan.category_id = category.id ' +
        'JOIN fitness_influencer ON plan.influencer_id = fitness_influencer.influencer_id ' +
        'WHERE plan.category_id = ? AND subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) ' +
-       'GROUP BY plan.id ORDER BY total_subscribers DESC LIMIT 1;'
+       'GROUP BY plan.id ORDER BY total_subscribers DESC LIMIT 3;'
 
      return await db.executeQuery(query, [categoryId])
 }
