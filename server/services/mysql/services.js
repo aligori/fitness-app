@@ -79,8 +79,8 @@ async function fillDatabase() {
     let availablePlans = 0;
 
     for (let id = 1; id <= categories.length; id++) {
-        const numberOfPlansInCategory = 1
-        // const numberOfPlansInCategory = getRandomInt(3, 15)
+        // const numberOfPlansInCategory = 1
+        const numberOfPlansInCategory = getRandomInt(3, 15)
         availablePlans += numberOfPlansInCategory;
 
         for (let i = 1; i <= numberOfPlansInCategory; i++) {
@@ -290,7 +290,7 @@ async function getNextWorkoutId(workoutId, planId) {
 
 // Report 1
 async function getBestPlanByCategory(categoryId){
-     const query = 'SELECT plan.title, category.name AS categoryName, fitness_influencer.first_name AS firstName, fitness_influencer.last_name AS lastName, ' +
+     const query = 'SELECT plan.title as planTitle, category.name AS categoryName, fitness_influencer.first_name AS firstName, fitness_influencer.last_name AS lastName, ' +
        'COUNT(subscription.goer_id) AS totalSubscribers FROM subscription JOIN plan ON subscription.plan_id = plan.id JOIN category ON plan.category_id = category.id ' +
        'JOIN fitness_influencer ON plan.influencer_id = fitness_influencer.influencer_id ' +
        'WHERE plan.category_id = ? AND subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) ' +
@@ -302,7 +302,8 @@ async function getBestPlanByCategory(categoryId){
 // Report 2
 async function getBestPlanByGoer(goerId){
     const query = 'select user.username, plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id join user on gym_goer_workout.goer_id = user.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) group by plan.id order by total_calories desc limit 1;'
-    return await db.executeQuery(query, [goerId]);
+    const result = await db.executeQuery(query, [goerId]);
+    return result[0] || {}
 }
 
 async function getProfileInfo(userId) {

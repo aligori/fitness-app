@@ -24,7 +24,7 @@ const FillDatabasePage = () => {
         onAuthChange({ dbFilled: true })
       }, 1000)
     } catch (err) {
-      showError('Error while filling the database!')
+      showError('Please wait until connection is established!')
     } finally {
       setFilling(false)
     }

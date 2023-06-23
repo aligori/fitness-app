@@ -5,11 +5,11 @@ import {showError} from "../utils/helpers";
 import {AuthContext} from "../context/AuthProvider";
 import {useNavigate} from "react-router";
 
-const Option = ({ onClick, label, checked }) => {
+const Option = ({ disabled, onClick, label, checked }) => {
   return (
     <div
-      className={`flex flex-1 my-1 border py-5 rounded items-center justify-center cursor-pointer text-gray-800 font-semibold transition duration-200 bg-indigo-50 ${checked ? 'border-2 border-indigo-400' : 'hover:bg-indigo-100'}`}
-      onClick={onClick}>
+      className={`${disabled? 'bg-gray-100 hover:bg-gray-100' : 'cursor-pointer bg-indigo-50'} flex flex-1 my-1 border py-5 rounded items-center justify-center text-gray-800 font-semibold transition duration-200 ${checked ? 'border-2 border-indigo-400' : 'hover:bg-indigo-100'}`}
+      onClick={disabled ? () => {} : onClick}>
       {label}
     </div>
   )
@@ -69,12 +69,12 @@ const LoginForm = () => {
                   }
                 </div>
               </div>
-              <DefaultButton md type="submit" label="Sign in"/>
+              <DefaultButton disabled={!selectedUser} md type="submit" label="Sign in"/>
             </form> :
             <div>
               <div className="mt-8 flex flex-col">
                 <Option label="Gym Goer" onClick={() => setType('goer')} checked={type === 'goer'}/>
-                <Option label="Fitness Influencer" onClick={() => setType('influencer')}
+                <Option disabled label="Fitness Influencer" onClick={() => setType('influencer')}
                         checked={type === 'influencer'}/>
                 <DefaultButton onClick={fetchUsers} label="Sign in" className="mt-2"/>
                 <span className="text-center uppercase tracking-tight my-3 text-gray-600">OR</span>

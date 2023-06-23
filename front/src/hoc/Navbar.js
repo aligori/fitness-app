@@ -2,7 +2,7 @@ import React from 'react';
 import {useNavigate} from "react-router";
 import Dropdown from "./Dropdown";
 
-const NavItem = ({ title, url }) => {
+const NavItem = ({ disabled, title, url }) => {
   let navigate = useNavigate();
 
   const onClick = () => {
@@ -11,8 +11,8 @@ const NavItem = ({ title, url }) => {
 
   return (
     <div
-      onClick={onClick}
-      className="text-gray-500 hover:text-gray-700 cursor-pointer mx-4 font-medium">
+      onClick={!disabled ? onClick : () => {}}
+      className={`text-gray-500 ${disabled ? '' : 'hover:text-orange-500 cursor-pointer'} mx-4 font-medium`}>
       {title}
     </div>
   );
@@ -30,8 +30,8 @@ const Navbar = () => {
         <div className="hidden md:block">
           <div className="flex items-center">
             <NavItem title="Categories" url="/" />
-            <NavItem title="Plans" url="/plans" />
-            <NavItem title="Influencers" url="/influencers" />
+            <NavItem disabled title="Plans" url="/plans" />
+            <NavItem disabled title="Influencers" url="/influencers" />
           </div>
         </div>
       </div>
