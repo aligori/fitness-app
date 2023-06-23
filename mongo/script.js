@@ -105,7 +105,6 @@ db.createCollection("user", {
                             }
                         }
                     },
-                    required: false
                 },
         
                 fitnessInfluencer: {

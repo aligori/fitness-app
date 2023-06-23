@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 import Tabs from "../core/tabs/Tabs";
 import Report1 from "../components/Report1";
 import Report2 from "../components/Report2";
+import {useNavigate} from "react-router";
 
 const ReportsPage = () => {
-  const [activeTab, setActiveTab] = useState('Report 1')
+  const [activeTab, setActiveTab] = useState('Report 1');
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -16,7 +18,7 @@ const ReportsPage = () => {
               <span className="text-orange-500 font-semibold">APP</span>
             </div>
           </div>
-          <div className="">Logout</div>
+          <div onClick={() => navigate('/login')} className="text-gray-700 cursor-pointer">Back to Login</div>
         </div>
         <div className="flex justify-center py-16 bg-gray-100">
           <div className="flex flex-col shadow-sm bg-white w-3/4 pt-5 pb-10">

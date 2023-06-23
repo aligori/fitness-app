@@ -11,19 +11,19 @@ let workoutIdMapper = {}
 
 async function initializeIdMappers() {
     const categories = await mysqlDb.executeQuery('SELECT * FROM category');
-    categoryIdMapper = categories.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+    categoryIdMapper = categories.reduce((prev, current) => ({...prev, [current.id]: new ObjectId(current.id)}), {});
 
     const plans = await mysqlDb.executeQuery('SELECT * FROM plan');
-    planIdMapper = plans.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+    planIdMapper = plans.reduce((prev, current) => ({...prev, [current.id]: new ObjectId(current.id)}), {});
 
     const workouts = await mysqlDb.executeQuery('SELECT * FROM workout');
-    workoutIdMapper = workouts.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+    workoutIdMapper = workouts.reduce((prev, current) => ({...prev, [current.id]: new ObjectId(current.id)}), {});
 
     const users = await mysqlDb.executeQuery('SELECT * FROM user');
-    userIdMapper = users.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+    userIdMapper = users.reduce((prev, current) => ({...prev, [current.id]: new ObjectId(current.id)}), {});
 
     const exercises = await mysqlDb.executeQuery('SELECT * FROM exercise');
-    exerciseIdMapper = exercises.reduce((prev, cur) => ({...prev, [cur.id]: new ObjectId(cur.id)}), {});
+    exerciseIdMapper = exercises.reduce((prev, current) => ({...prev, [current.id]: new ObjectId(current.id)}), {});
 }
 
 async function migrateGymGoers() {
@@ -282,7 +282,6 @@ async function migrateCompletedWorkouts() {
 export async function migrateDatabase(){
     await mongoServices.resetDatabase()
     await initializeIdMappers()
-
     await migrateUsers()
     await migrateCategories()
     await migrateExercises()

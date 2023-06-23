@@ -24,9 +24,13 @@ const SetCard = ({ set }) => {
           </div>
         </div>
       </div>
-      <div className="flex justify-center text-sm group-hover:text-indigo-500">
-        View Details
-      </div>
+      {
+        !showDescription && (
+          <div className="flex justify-center text-sm group-hover:text-indigo-500">
+            View Details
+          </div>
+        )
+      }
       {
         showDescription && (
           <>

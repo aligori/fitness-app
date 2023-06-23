@@ -274,8 +274,7 @@ async function getBestPlanByCategory(categoryId) {
     }
   ];
 
-  const result = await db.collection("plan").aggregate(pipeline).toArray();
-  return result[0] ? result[0]:null;
+  return await db.collection("plan").aggregate(pipeline).toArray();
 }
 
 async function getProfileInfo(userId) {

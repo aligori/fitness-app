@@ -59,6 +59,7 @@ app.get('/users', async (req, res) => {
   }
 )
 
+// Report 2
 app.get('/users/:id/report', async (req, res) => {
     try {
         const id = req.params.id;
@@ -100,6 +101,7 @@ app.get('/categories/:id', async (req, res) => {
   }
 )
 
+// Report 1
 app.get('/categories/:id/report', async (req, res) => {
     try {
         const id = req.params.id;
