@@ -25,7 +25,7 @@ const PlanCard = ({ plan = {} }) => {
           {plan.goal}
         </div>
         <div className="flex items-center justify-center text-gray-700 text-sm mt-1">
-          By <span className="font-medium ml-1">{plan.influencerName}</span>
+          By <span className="font-medium ml-1">{plan?.influencerName}</span>
         </div>
         <DefaultButton label="View Plan" onClick={viewPlan} className="mt-3" />
       </div>
