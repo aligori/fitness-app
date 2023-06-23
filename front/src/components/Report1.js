@@ -62,7 +62,7 @@ const Report1 = () => {
             <div className="flex border-b last:border-b-0 text-gray-800">
               <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {row?.planTitle}</div>
               <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {row?.categoryName}</div>
-              <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.firstName} {report?.lastName}</div>
+              <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.firstName} {row?.lastName}</div>
               <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.totalSubscribers}</div>
             </div>)
       }

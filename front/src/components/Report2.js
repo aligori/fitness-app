@@ -71,9 +71,18 @@ const Report2 = () => {
             <div className="flex-1 px-3 py-2"> Total Calories</div>
           </div>
           <div className="flex border-b last:border-b-0">
-            <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {report?.title}</div>
+            {
+              report && (
+                <>
+                <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {report?.title}</div>
             <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {report?.username}</div>
-            <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {report?.total_calories}</div>
+            <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {report?.total_calories ? report?.total_calories.toFixed(2) : ''}</div>
+            </>
+              )
+            }
+            {
+              !report && <div className="flex text-center text-sm text-gray-500 italic px-3 py-3"> This user has not completed any workouts...</div>
+            }
           </div>
         </div>
       )

@@ -79,8 +79,7 @@ async function fillDatabase() {
     let availablePlans = 0;
 
     for (let id = 1; id <= categories.length; id++) {
-        // const numberOfPlansInCategory = 1
-        const numberOfPlansInCategory = getRandomInt(3, 15)
+         const numberOfPlansInCategory = getRandomInt(3, 15)
         availablePlans += numberOfPlansInCategory;
 
         for (let i = 1; i <= numberOfPlansInCategory; i++) {
@@ -225,7 +224,12 @@ async function fillDatabase() {
 }
 
 async function getGymGoers() {
-    const query = 'SELECT u.id, u.username, u.email, u.avatar FROM user as u inner join gym_goer as gg on u.id = gg.goer_id';
+    const query = 'SELECT u.id, u.username, u.email, u.avatar FROM user as u inner join gym_goer as gg on u.id = gg.goer_id ORDER BY u.username ASC';
+    return await db.executeQuery(query);
+}
+
+async function getGymGoersWithPlans() {
+    const query = 'SELECT distinct u.id, u.username, u.email, u.avatar FROM user as u inner join gym_goer as gg on u.id = gg.goer_id inner join gym_goer_workout as ggw on ggw.goer_id = gg.goer_id ORDER BY u.username ASC';
     return await db.executeQuery(query);
 }
 
@@ -290,20 +294,26 @@ async function getNextWorkoutId(workoutId, planId) {
 
 // Report 1
 async function getBestPlanByCategory(categoryId){
-     const query = 'SELECT plan.title as planTitle, category.name AS categoryName, fitness_influencer.first_name AS firstName, fitness_influencer.last_name AS lastName, ' +
-       'COUNT(subscription.goer_id) AS totalSubscribers FROM subscription JOIN plan ON subscription.plan_id = plan.id JOIN category ON plan.category_id = category.id ' +
-       'JOIN fitness_influencer ON plan.influencer_id = fitness_influencer.influencer_id ' +
-       'WHERE plan.category_id = ? AND subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) ' +
-       'GROUP BY plan.id ORDER BY totalSubscribers DESC LIMIT 3;'
+     const query = 'SELECT filtered_plan.title AS planTitle, category.name AS categoryName, ' +
+     'fitness_influencer.first_name AS firstName, fitness_influencer.last_name AS lastName, ' +
+     'COUNT(filtered_subscription.goer_id) AS totalSubscribers FROM (SELECT goer_id, plan_id ' +
+     'FROM subscription WHERE subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)) AS filtered_subscription ' +
+     'JOIN (SELECT id, category_id, influencer_id, title FROM plan WHERE category_id = ?) AS filtered_plan ' +
+     'ON filtered_subscription.plan_id = filtered_plan.id JOIN category ON filtered_plan.category_id = category.id ' +
+     'JOIN fitness_influencer ON filtered_plan.influencer_id = fitness_influencer.influencer_id ' +
+     'GROUP BY filtered_plan.id ORDER BY totalSubscribers DESC, fitness_influencer.first_name ASC LIMIT 3;'
 
      return await db.executeQuery(query, [categoryId])
 }
 
 // Report 2
 async function getBestPlanByGoer(goerId){
-    const query = 'select user.username, plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id join user on gym_goer_workout.goer_id = user.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) group by plan.id order by total_calories desc limit 1;'
+    const query = 'select user.username, plan.title, sum(calories_burned) as total_calories from (select goer_id, ' +
+    'workout_id from gym_goer_workout where goer_id=? and completed_date >= date_sub(now(), interval 30 day)) ' +
+    'as completes join workout on completes.workout_id = workout.id join plan on workout.plan_id = plan.id ' +
+    'join user on completes.goer_id = user.id group by plan.id order by total_calories desc limit 1;'
     const result = await db.executeQuery(query, [goerId]);
-    return result[0] || {}
+    return result[0] || null
 }
 
 async function getProfileInfo(userId) {
@@ -337,5 +347,6 @@ export default {
     getNextWorkoutId,
     getBestPlanByGoer,
     getBestPlanByCategory,
-    getProfileInfo
+    getProfileInfo,
+    getGymGoersWithPlans
 }

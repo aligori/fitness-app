@@ -59,6 +59,17 @@ app.get('/users', async (req, res) => {
   }
 )
 
+app.get('/users-with-workouts', async (req, res) => {
+  try {
+    await services.getGymGoersWithPlans()
+    res.status(200).send({ message: 'Success', data });
+  } catch
+    (err) {
+    res.status(500).send({ error: 'Internal server error' });
+  }
+}
+)
+
 // Report 2
 app.get('/users/:id/report', async (req, res) => {
     try {
