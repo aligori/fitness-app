@@ -213,9 +213,6 @@ async function getBestPlanByGoer(goerId) {
     return result[0] ? result[0] : null;
 }
 
-
-
-
 // Report 1
 async function getBestPlanByCategory(categoryId) {
   const categoryObjId = new ObjectId(categoryId)
