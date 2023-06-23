@@ -240,7 +240,7 @@ async function getBestPlanByCategory(categoryId) {
           {
             $match: {
               $expr: { $eq: ["$planId", "$$plan_id"] },
-              subscriptionDate: {
+              subscribeDate: {
                 $gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
               }
             }

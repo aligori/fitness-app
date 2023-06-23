@@ -11,7 +11,8 @@ export const categoryPlansMapper = (results = []) => {
         description: row.description,
         duration: row.duration,
         createdAt: row.created_at,
-        goal: row.goal
+        goal: row.goal,
+        influencerName: row.influencer_name
       }
     })
   }

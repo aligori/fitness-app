@@ -184,7 +184,7 @@ db.createCollection("subscription", {
                     bsonType: "objectId",
                     description: "plan the user subscribed to"
                 },
-                subscriptionDate: {
+                subscribeDate: {
                     bsonType: "date",
                     description: "date the user subscribed"
                 }
@@ -192,7 +192,7 @@ db.createCollection("subscription", {
         }
     }
 });
-db.subscription.createIndex({"planId":1, "subscriptionDate":-1})
+db.subscription.createIndex({"planId":1, "subscribeDate":-1})
 
 db.createCollection("exercise",{
     validator:{
