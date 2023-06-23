@@ -1,15 +1,3 @@
--- select user.username, plan.title, sum(calories_burned) as total_calories 
--- from gym_goer_workout 
---     join gym_goer on gym_goer_workout.goer_id = gym_goer.goer_id
---     join workout on gym_goer_workout.workout_id = workout.id 
---     join plan on workout.plan_id = plan.id 
---     join user on gym_goer.goer_id = user.id
--- where gym_goer_workout.goer_id = ? 
--- and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) 
--- group by plan.id 
--- order by total_calories 
--- desc limit 1;
-
 -- select plan.title, category.title, count(goer_id) as total_subscribers, fitness_influencer.first_name, fitness_influencer.last_name
 -- from subscription 
 --     join plan on subscription.plan_id = plan.id 
@@ -19,4 +7,15 @@
 --     and subscription.subscribe_date >= date_sub(now(), interval 30 day) 
 -- group by plan.id 
 -- order by total_subscribers desc 
--- limit 1;
+-- limit 3;
+
+-- select user.username, plan.title, sum(calories_burned) as total_calories 
+-- from gym_goer_workout 
+--     join workout on gym_goer_workout.workout_id = workout.id 
+--     join plan on workout.plan_id = plan.id 
+--     join user on gym_goer_workout.goer_id = user.id
+-- where gym_goer_workout.goer_id = ? 
+-- and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) 
+-- group by plan.id 
+-- order by total_calories 
+-- desc limit 1;
