@@ -163,8 +163,11 @@ async function getBestPlanByGoer(goerId) {
       {
         $lookup: {
           from: "workout",
-          localField: "workoutId",
-          foreignField: "_id",
+          let: {workoutId: "$workoutId"},
+          pipeline: [
+            {$match: {$expr: {$eq: ["$_id", "$$workoutId"]}}},
+            {$project: {"plan.title":1, caloriesBurned: 1}}
+          ],
           as: "workout"
         }
       },
