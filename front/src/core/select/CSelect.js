@@ -7,7 +7,7 @@ const CSelectInput = ({
                         placeholder = 'Select...',
                         formatOptionLabel = false,
                         onChange = null,
-                        maxHeight,
+                        maxHeight = "400px",
                         isClearable = false,
                         isDisabled = false,
                         label = null,

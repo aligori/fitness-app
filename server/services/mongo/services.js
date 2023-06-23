@@ -24,7 +24,22 @@ async function getGymGoers() {
       'username': 1,
       'avatar': 1
     }
-  }).toArray()
+  }).sort({ username: 1 }).toArray()
+  return result.map(mapIdCallback);
+}
+
+async function getGymGoersWithPlans() {
+  const result = await db.collection('user').find({ gymGoer: { $exists: true } }, 
+    {$lookup: {from: 'completedWorkout', localField: '_id', foreignField: 'goerId', as: 'completedWorkouts'}},
+    {$match: {completedWorkouts: {$ne: []}}},
+    {
+    projection: {
+      '_id': 1,
+      'email': 1,
+      'username': 1,
+      'avatar': 1
+    }
+  }).sort({ username: 1 }).toArray()
   return result.map(mapIdCallback);
 }
 
@@ -259,7 +274,7 @@ async function getBestPlanByCategory(categoryId) {
     },
     {
       $sort: {
-        totalSubscribers: -1
+        totalSubscribers: -1, "createdBy.firstName": 1
       }
     },
     {
@@ -297,4 +312,5 @@ export default {
   getBestPlanByGoer,
   getBestPlanByCategory,
   getProfileInfo,
+  getGymGoersWithPlans
 }
