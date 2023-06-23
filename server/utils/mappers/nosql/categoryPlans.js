@@ -10,7 +10,8 @@ export const categoryPlansMapper = (results = []) => {
         title: plan.title,
         duration: plan.duration,
         createdAt: plan.created_at,
-        goal: plan.goal
+        goal: plan.goal,
+        influencerName: plan.createdBy?.firstName + " " + plan.createdBy?.lastName
       }
     })
   }

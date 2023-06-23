@@ -167,8 +167,8 @@ async function fillDatabase() {
             const planId = getRandomInt(1, availablePlans)
             if (subscribedPlanIds.includes(planId)) continue;   // Skip if randomly generated plan already subscribed
 
-            const subscriptionDate = faker.date.past({ years: 1 })
-            subscriptions.push([gymGoerId, planId, subscriptionDate])
+            const subscribeDate = faker.date.past({ years: 1 })
+            subscriptions.push([gymGoerId, planId, subscribeDate])
             subscribedPlanIds.push(planId)
         }
     }
@@ -240,8 +240,8 @@ async function getCategories() {
 
 async function getCategoryPlans(id) {
     const query = 'SELECT c.id as category_id, c.name, c.image, ' +
-      'p.id as plan_id, p.title, p.description as plan_description, p.goal, p.duration, p.created_at  ' +
-      'FROM plan as p INNER JOIN category as c ON p.category_id = c.id WHERE c.id = ?;';
+      'p.id as plan_id, p.title, p.description as plan_description, p.goal, p.duration, p.created_at, CONCAT(f.first_name, \' \', f.last_name) as influencer_name  ' +
+      'FROM plan as p INNER JOIN category as c ON p.category_id = c.id  INNER JOIN fitness_influencer AS f on p.influencer_id = f.influencer_id WHERE c.id = ?;';
 
     const result = await db.executeQuery(query, [id]);
     return categoryPlansMapper(result)
@@ -294,18 +294,14 @@ async function getBestPlanByCategory(categoryId){
        'COUNT(subscription.goer_id) AS totalSubscribers FROM subscription JOIN plan ON subscription.plan_id = plan.id JOIN category ON plan.category_id = category.id ' +
        'JOIN fitness_influencer ON plan.influencer_id = fitness_influencer.influencer_id ' +
        'WHERE plan.category_id = ? AND subscription.subscribe_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR) ' +
-       'GROUP BY plan.id ORDER BY total_subscribers DESC LIMIT 3;'
+       'GROUP BY plan.id ORDER BY totalSubscribers DESC LIMIT 3;'
 
      return await db.executeQuery(query, [categoryId])
 }
 
 // Report 2
 async function getBestPlanByGoer(goerId){
-    const query = 'select user.username, plan.title, sum(calories_burned) as total_calories' 
-    + 'from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id' 
-    + 'join plan on workout.plan_id = plan.id join user on gym_goer_workout.goer_id = user.id'
-    + 'where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day)'
-    + 'group by plan.id order by total_calories desc limit 1;'
+    const query = 'select user.username, plan.title, sum(calories_burned) as total_calories from gym_goer_workout join workout on gym_goer_workout.workout_id = workout.id join plan on workout.plan_id = plan.id join user on gym_goer_workout.goer_id = user.id where gym_goer_workout.goer_id = ? and gym_goer_workout.completed_date >= date_sub(now(), interval 30 day) group by plan.id order by total_calories desc limit 1;'
     return await db.executeQuery(query, [goerId]);
 }
 
