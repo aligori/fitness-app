@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import CSelectInput from "../core/select/CSelect";
-import useData from "../hooks/useData";
 import {API} from "../utils/plugins/API";
 
 const Report2 = () => {
   const [user, setUser] = useState();
   const [users, setUsers] = useState([]);
-  const report = useData(`/users/${user?.value}/report`, [user])
+  const [report, setReport] = useState({})
 
   useEffect(() => {
       let ignore = false;
@@ -22,6 +21,21 @@ const Report2 = () => {
         ignore = true;
       };
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      let ignore = false;
+      API.get(`/users/${user?.value}/report`)
+        .then(response => {
+          if (!ignore) {
+            setReport(response.data);
+          }
+        });
+      return () => {
+        ignore = true;
+      }
+    }
+  }, [user]);
 
   return <div className="flex flex-col mx-15 my-10">
     <div className="flex justify-between items-center">

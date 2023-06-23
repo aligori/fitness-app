@@ -1,21 +1,18 @@
 import React, {useEffect, useState} from 'react'
 import CSelectInput from "../core/select/CSelect";
-import useData from "../hooks/useData";
 import {API} from "../utils/plugins/API";
 
 const Report1 = () => {
   const [category, setCategory] = useState()
   const [categories, setCategories] = useState([])
-  const report = useData(`/categories/${category?.value}/report`, [category])
+  const [report, setReport] = useState([])
 
   useEffect(() => {
     let ignore = false;
     API.get('/categories')
       .then(response => {
         if (!ignore) {
-          console.log('response.data', response.data)
           const categoryOptions = response.data?.map((c) => { return { label: c.name, value: c.id }});
-          console.log(categoryOptions, 'categoryOptions')
           setCategories(categoryOptions)
           setCategory(categoryOptions[0])
         }
@@ -24,6 +21,21 @@ const Report1 = () => {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+      if (category) {
+        let ignore = false;
+        API.get(`/categories/${category?.value}/report`)
+          .then(response => {
+            if (!ignore) {
+              setReport(response.data);
+            }
+          });
+        return () => {
+          ignore = true;
+        }
+      }
+  }, [category]);
 
   return <div className="flex flex-col mx-15 my-10">
     <div className="flex justify-between items-center">
@@ -51,7 +63,7 @@ const Report1 = () => {
               <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {row?.planTitle}</div>
               <div className="flex-1 px-3 py-3 hover:bg-gray-50"> {row?.categoryName}</div>
               <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.firstName} {report?.lastName}</div>
-              <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.firstName} {report?.lastName}</div>
+              <div className="flex-1 px-3 py-3 hover:bg-gray-50">  {row?.totalSubscribers}</div>
             </div>)
       }
     </div>
