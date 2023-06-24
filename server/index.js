@@ -101,7 +101,8 @@ app.get('/categories', async (req, res) => {
 app.get('/categories/:id', async (req, res) => {
     try {
       const id = req.params.id;
-      const data = await services.getCategoryPlans(id);
+      const qs = req.query.qs;
+      const data = await services.getCategoryPlans(id, qs);
       res.status(200).send({
         message: 'Success', data
       });

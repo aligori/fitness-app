@@ -60,8 +60,20 @@ async function getCategories() {
   return result.map(mapIdCallback)
 }
 
-async function getCategoryPlans(categoryId) {
-  const result = await db.collection('plan').find({ "category._id": new ObjectId(categoryId) }).toArray(); // Index is used
+async function getCategoryPlans(categoryId, qs) {
+  let query = { "category._id": new ObjectId(categoryId) };
+
+  if (qs) {
+    qs = new RegExp(qs, 'i');
+    query.$or = [
+      { "title": { $regex: qs } }, 
+      { "createdBy.firstName": { $regex: qs } }, 
+      { "createdBy.lastName": { $regex: qs } }
+    ];
+  }
+
+  const result = await db.collection('plan').find(query).toArray();
+
   return categoryPlansMapper(result);
 }
 
@@ -296,7 +308,9 @@ async function getBestPlanByCategory(categoryId) {
 }
 
 async function getProfileInfo(userId) {
-  return await db.collection("user").findOne({ _id: new ObjectId(userId)});
+  const { gymGoer, ...user } = await db.collection("user").findOne({ _id: new ObjectId(userId)});
+  const { subscriptions, friends, follows, ...goerData } = gymGoer
+  return {...user, gymGoer: {...goerData}, subscriptions, friends, follows}
 }
 
 export default {
@@ -312,5 +326,5 @@ export default {
   getBestPlanByGoer,
   getBestPlanByCategory,
   getProfileInfo,
-  getGymGoersWithPlans
+  getGymGoersWithPlans,
 }

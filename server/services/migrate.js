@@ -29,24 +29,8 @@ async function initializeIdMappers() {
 async function migrateGymGoers() {
     const gymGoers = await mysqlDb.executeQuery('SELECT * FROM user AS u INNER JOIN gym_goer AS gg ON u.id = gg.goer_id');
 
-    const gymGoerDocuments = gymGoers.map((row) => {
-        return {
-            _id: row.id,
-            email: row.email,
-            password: row.password,
-            username: row.username,
-            avatar: row.avatar,
-            gymGoer: {
-                weight: row.weight,
-                height: row.height,
-                age: row.age,
-                birthday: row.birthday,
-                membershipType: row.membership_type
-            },
-        }
-    });
-
-    return await Promise.all(gymGoerDocuments.map(async ({_id, ...user}) => {
+    return await Promise.all(gymGoers.map(async ({id, ...user}) => {
+        const _id = id
         const subscriptionsQuery = 'SELECT p.id, p.title, p.goal, p.duration FROM subscription AS s INNER JOIN plan AS p ' +
           'ON p.id = s.plan_id WHERE s.goer_id = ?'
         const subscriptions = await mysqlDb.executeQuery(subscriptionsQuery, [_id])
@@ -61,27 +45,37 @@ async function migrateGymGoers() {
 
         return {
             _id: userIdMapper[_id],
-            ... user,
-            subscriptions: subscriptions.map(row => {
-                return {
-                    _id: planIdMapper[row.id],
-                    title: row.title,
-                    duration: row.duration,
-                    goal: row.goal
-                }
-            }),
-            friends: friends.map(friend => {
-                return {
-                    _id: userIdMapper[friend.id],
-                    username: friend.username
-                }
-            }),
-            following: following.map(influencer => {
-                return {
-                    _id: userIdMapper[influencer.id],
-                    username: influencer.username
-                }
-            })
+            email: user.email,
+            password: user.password,
+            username: user.username,
+            avatar: user.avatar,
+            gymGoer: {
+                weight: user.weight,
+                height: user.height,
+                age: user.age,
+                birthday: user.birthday,
+                membershipType: user.membership_type,
+                subscriptions: subscriptions.map(row => {
+                    return {
+                        _id: planIdMapper[row.id],
+                        title: row.title,
+                        duration: row.duration,
+                        goal: row.goal
+                    }
+                }),
+                friends: friends.map(friend => {
+                    return {
+                        _id: userIdMapper[friend.id],
+                        username: friend.username
+                    }
+                }),
+                following: following.map(influencer => {
+                    return {
+                        _id: userIdMapper[influencer.id],
+                        username: influencer.username
+                    }
+                })
+            },
         }
     }));
 }
